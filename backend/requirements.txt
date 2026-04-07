@@ -1,0 +1,23 @@
+# Dependencias Python ───────────────────────────
+
+# Framework
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+
+# Base de datos
+sqlalchemy==2.0.30
+asyncpg==0.29.0        # driver async para PostgreSQL
+psycopg2-binary==2.9.9 # driver sync (usado por Alembic)
+alembic==1.13.1
+
+# Autenticación JWT
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Validación y configuración
+pydantic==2.7.1
+pydantic-settings==2.2.1
+python-dotenv==1.0.1
+
+# Utilidades
+python-multipart==0.0.9
