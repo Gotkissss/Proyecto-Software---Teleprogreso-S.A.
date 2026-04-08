@@ -3,6 +3,8 @@ from typing import List, Optional
 from app.schemas.tarea import TareaResponse, EstadoServicio
 from app.schemas.tarea import TareaCreate
 from datetime import datetime
+from fastapi import HTTPException
+from app.schemas.tarea import TareaUpdateEstado
 
 router = APIRouter(prefix="/tareas", tags=["Tareas"])
 
@@ -78,3 +80,19 @@ def create_tarea(tarea: TareaCreate):
     tareas_mock.append(nueva_tarea)
 
     return nueva_tarea
+
+
+@router.patch("/{id}/estado", response_model=TareaResponse)
+def update_estado(id: int, data: TareaUpdateEstado):
+    
+    # 🔹 Buscar tarea
+    for tarea in tareas_mock:
+        if tarea["id_servicio"] == id:
+            
+            # 🔹 Actualizar estado
+            tarea["estado"] = data.estado
+            
+            return tarea
+
+    # 🔹 Si no existe
+    raise HTTPException(status_code=404, detail="Tarea no encontrada")  
