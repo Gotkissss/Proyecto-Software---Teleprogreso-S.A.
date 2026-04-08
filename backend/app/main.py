@@ -1,6 +1,6 @@
 from fastapi import FastAPI
+from app.routers import tareas
 from fastapi.middleware.cors import CORSMiddleware
-
 from app.core.config import settings
 from app.db.session import engine
 from app.db.base import Base
@@ -16,6 +16,8 @@ app = FastAPI(
     description="API para supervision de personal y gestion de activos",
     version="1.0.0",
 )
+
+app.include_router(tareas.router)
 
 # CORS — permite que el frontend React se comunique con el backend
 app.add_middleware(
@@ -38,3 +40,4 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
