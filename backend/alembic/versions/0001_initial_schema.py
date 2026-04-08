@@ -1,3 +1,4 @@
+from geoalchemy2 import Geography
 """Esquema inicial — Teleprogreso S.A.
 
 Revision ID: 0001
@@ -94,7 +95,7 @@ def upgrade() -> None:
         sa.Column("fecha_inicio", sa.Date(), nullable=True),
         sa.Column("fecha_finalizacion", sa.Date(), nullable=True),
         sa.Column("direccion_servicio", sa.String(255), nullable=True),
-        sa.Column("coordenada_servicio", sa.Geography(geometry_type="POINT", srid=4326), nullable=True),
+        sa.Column("coordenada_servicio", Geography(geometry_type="POINT", srid=4326), nullable=True),
         sa.Column("fecha_asignacion", sa.Date(), nullable=True),
     )
     op.create_index("ix_tarea_estado", "tarea", ["estado_tarea"])
@@ -121,8 +122,8 @@ def upgrade() -> None:
         sa.Column("fecha", sa.Date(), nullable=False),
         sa.Column("hora_entrada", sa.Time(), nullable=False),
         sa.Column("hora_salida", sa.Time(), nullable=True),
-        sa.Column("coordenada_entrada", sa.Geography(geometry_type="POINT", srid=4326), nullable=True),
-        sa.Column("coordenada_salida", sa.Geography(geometry_type="POINT", srid=4326), nullable=True),
+        sa.Column("coordenada_entrada", Geography(geometry_type="POINT", srid=4326), nullable=True),
+        sa.Column("coordenada_salida", Geography(geometry_type="POINT", srid=4326), nullable=True),
     )
     op.create_index("ix_asistencia_empleado_fecha", "asistencia", ["id_empleado", "fecha"])
 
@@ -151,7 +152,7 @@ def upgrade() -> None:
         sa.Column("id_ubicacion", sa.Integer(), primary_key=True, autoincrement=True),
         sa.Column("id_empleado", sa.Integer(), sa.ForeignKey("empleado.id_empleado", ondelete="CASCADE"), nullable=False),
         sa.Column("fecha_hora_registro", sa.DateTime(), nullable=False, server_default=sa.text("NOW()")),
-        sa.Column("coordenada", sa.Geography(geometry_type="POINT", srid=4326), nullable=False),
+        sa.Column("coordenada", Geography(geometry_type="POINT", srid=4326), nullable=False),
     )
     op.create_index("ix_ubicacion_empleado", "ubicacion_empleado", ["id_empleado"])
 

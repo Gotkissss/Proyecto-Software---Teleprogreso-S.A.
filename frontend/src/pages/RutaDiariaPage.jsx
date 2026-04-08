@@ -17,7 +17,7 @@ import Spinner from '../components/ui/Spinner'
 import styles from './RutaDiariaPage.module.css'
 
 /* ─── Cambiar a false cuando el backend esté listo ─────────────────────── */
-const USE_MOCK = true
+const USE_MOCK = false
 
 /* ── Iconos ──────────────────────────────────────────────────────────────── */
 const IconPin      = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>

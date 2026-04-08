@@ -33,7 +33,7 @@ export async function actualizarEstado(id, estado) {
  * @param {number} tecnico_id
  */
 export async function reasignarTarea(id, tecnico_id) {
-  const { data } = await apiClient.patch(`/tareas/${id}/reasignar`, { tecnico_id })
+  const { data } = await apiClient.patch(`/tareas/${id}/reasignar`, { id_tecnico: tecnico_id })
   return data
 }
 
@@ -41,7 +41,13 @@ export async function reasignarTarea(id, tecnico_id) {
  * Crea una nueva tarea y la asigna a un técnico
  * @param {Object} tarea - { titulo, descripcion, tecnico_id, fecha_limite }
  */
-export async function crearTarea(tarea) {
-  const { data } = await apiClient.post('/tareas', tarea)
+export async function crearTarea({ titulo, descripcion, direccion, prioridad, id_tecnico }) {
+  const { data } = await apiClient.post('/tareas', {
+    nombre: titulo,
+    descripcion,
+    direccion,
+    prioridad,
+    id_tecnico,
+  })
   return data
 }
