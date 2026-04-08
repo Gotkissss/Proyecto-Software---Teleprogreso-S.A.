@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 
 
-# 🔹 ENUMS (alineados a la BD)
+# 🔹 ENUMS (alineados a la lógica del sistema)
 class EstadoServicio(str, Enum):
     pendiente = "pendiente"
     en_progreso = "en_progreso"
@@ -19,7 +19,7 @@ class PrioridadServicio(str, Enum):
     urgente = "urgente"
 
 
-# 🔹 BASE (para reutilizar campos)
+# 🔹 BASE (para creación)
 class TareaBase(BaseModel):
     nombre: str
     descripcion: Optional[str] = None
@@ -34,16 +34,17 @@ class TareaCreate(TareaBase):
 
 
 # 🔹 RESPONSE (GET /tareas)
-class TareaResponse(TareaBase):
-    id_servicio: int
-    estado: EstadoServicio
+class TareaResponse(BaseModel):
+    id_tarea: int
+    titulo: str
+    descripcion: Optional[str] = None
+    direccion_servicio: Optional[str] = None
+    estado_tarea: str
+    prioridad: str
     fecha_asignacion: Optional[datetime] = None
-    fecha_limite: Optional[datetime] = None
-    fecha_inicio_real: Optional[datetime] = None
-    fecha_fin_real: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True  # 🔥 Pydantic v2 (reemplaza orm_mode)
 
 
 # 🔹 UPDATE ESTADO (PATCH /tareas/{id}/estado)
