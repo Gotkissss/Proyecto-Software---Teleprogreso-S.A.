@@ -1,23 +1,19 @@
 from fastapi import FastAPI
-from app.routers import tareas
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.db.session import engine
-from app.db.base import Base
 
 # Importar todos los modelos para que SQLAlchemy los pueda registrar
 import app.models  # noqa: F401
 
-# --------- Routers---------------
+# --------- Routers ---------------
 from app.api.routers.auth import router as auth_router
+from app.routers.tareas import router as tareas_router
 
 app = FastAPI(
     title="Teleprogreso S.A.",
     description="API para supervision de personal y gestion de activos",
     version="1.0.0",
 )
-
-app.include_router(tareas.router)
 
 # CORS — permite que el frontend React se comunique con el backend
 app.add_middleware(
@@ -30,6 +26,7 @@ app.add_middleware(
 
 # ----- Registrar routers --------------------------------
 app.include_router(auth_router)
+app.include_router(tareas_router)
 
 
 @app.get("/")
@@ -40,4 +37,3 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "ok"}
-
