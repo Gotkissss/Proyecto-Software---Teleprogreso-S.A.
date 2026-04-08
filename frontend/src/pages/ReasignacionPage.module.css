@@ -1,0 +1,306 @@
+/* ============================================================
+   ReasignacionPage.module.css
+   Gestión de Reasignación de Servicios
+   Diseño: lista de tareas con acciones inline, panel modal
+   centrado con overlay, botones primario/secundario
+   ============================================================ */
+
+.page {
+  --c-bg:         #F0F2F5;
+  --c-surface:    #FFFFFF;
+  --c-border:     #E2E8F0;
+  --c-text-main:  #0F172A;
+  --c-text-sub:   #64748B;
+  --c-blue:       #2563EB;
+  --c-blue-hover: #1D4ED8;
+  --c-blue-soft:  #EFF6FF;
+  --c-red:        #EF4444;
+  --c-red-soft:   #FEF2F2;
+  --c-orange:     #F97316;
+  --c-orange-soft:#FFF7ED;
+  --c-green:      #16A34A;
+  --c-green-soft: #F0FDF4;
+  --c-green-border:#BBF7D0;
+  --radius-sm:    6px;
+  --radius-md:    10px;
+  --radius-lg:    14px;
+  --radius-xl:    18px;
+  --shadow-card:  0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.05);
+  --shadow-panel: 0 20px 60px rgba(0,0,0,.18), 0 4px 16px rgba(0,0,0,.10);
+  --font:         'Inter', 'Segoe UI', sans-serif;
+
+  font-family:  var(--font);
+  background:   var(--c-bg);
+  min-height:   100vh;
+  padding:      28px 32px 48px;
+  color:        var(--c-text-main);
+  box-sizing:   border-box;
+}
+
+/* ── Centro / loading ──────────────────────────────────────── */
+.center {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  min-height:      60vh;
+}
+
+.errorMsg {
+  color:     var(--c-red);
+  font-size: .9rem;
+  padding:   24px 32px;
+}
+
+/* ── Título ────────────────────────────────────────────────── */
+.title {
+  font-size:      1.6rem;
+  font-weight:    700;
+  letter-spacing: -.4px;
+  color:          var(--c-text-main);
+  margin:         0 0 6px;
+}
+
+/* ── Banner de éxito ───────────────────────────────────────── */
+.exitoBanner {
+  display:       flex;
+  align-items:   center;
+  gap:           10px;
+  background:    var(--c-green-soft);
+  border:        1px solid var(--c-green-border);
+  color:         var(--c-green);
+  font-size:     .875rem;
+  font-weight:   600;
+  border-radius: var(--radius-md);
+  padding:       12px 16px;
+  margin-bottom: 20px;
+  animation:     fadeIn .3s ease;
+}
+
+.exitoBanner::before {
+  content: '✓';
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* ── Vacío ─────────────────────────────────────────────────── */
+.emptyMsg {
+  text-align: center;
+  color:      var(--c-text-sub);
+  font-size:  .9rem;
+  padding:    48px 0;
+  background: var(--c-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* ── Lista de tareas ───────────────────────────────────────── */
+.tareasList {
+  list-style: none;
+  margin:     0;
+  padding:    0;
+  display:    flex;
+  flex-direction: column;
+  gap:        10px;
+}
+
+/* ── Item de tarea ─────────────────────────────────────────── */
+.tareaItem {
+  background:    var(--c-surface);
+  border-radius: var(--radius-lg);
+  box-shadow:    var(--shadow-card);
+  padding:       16px 20px;
+  display:       flex;
+  align-items:   center;
+  gap:           16px;
+  border:        1px solid var(--c-border);
+  transition:    box-shadow .15s, border-color .15s;
+}
+
+.tareaItem:hover {
+  box-shadow:   0 4px 16px rgba(0,0,0,.09);
+  border-color: #C7D2FE;
+}
+
+.tareaInfo {
+  flex:           1;
+  display:        flex;
+  flex-direction: column;
+  gap:            3px;
+}
+
+.tareaTitulo {
+  font-size:   .9rem;
+  font-weight: 600;
+  color:       var(--c-text-main);
+}
+
+.tareaTecnico {
+  font-size: .78rem;
+  color:     var(--c-text-sub);
+}
+
+.tareaAcciones {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+  flex-shrink: 0;
+}
+
+/* ── Botón reasignar (inline) ──────────────────────────────── */
+.reasignarBtn {
+  padding:       7px 14px;
+  background:    var(--c-blue);
+  color:         #fff;
+  border:        none;
+  border-radius: var(--radius-sm);
+  font-size:     .82rem;
+  font-weight:   600;
+  cursor:        pointer;
+  white-space:   nowrap;
+  transition:    background .15s, transform .12s;
+  letter-spacing:.2px;
+}
+
+.reasignarBtn:hover {
+  background: var(--c-blue-hover);
+  transform:  translateY(-1px);
+}
+
+/* ── Overlay ───────────────────────────────────────────────── */
+.overlay {
+  position:        fixed;
+  inset:           0;
+  background:      rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(3px);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  z-index:         200;
+  animation:       overlayIn .2s ease;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Panel modal ───────────────────────────────────────────── */
+.panel {
+  background:    var(--c-surface);
+  border-radius: var(--radius-xl);
+  box-shadow:    var(--shadow-panel);
+  padding:       32px 28px 28px;
+  width:         100%;
+  max-width:     440px;
+  margin:        16px;
+  animation:     panelIn .22s cubic-bezier(.34,1.4,.64,1);
+}
+
+@keyframes panelIn {
+  from { opacity: 0; transform: scale(.94) translateY(12px); }
+  to   { opacity: 1; transform: scale(1)   translateY(0);    }
+}
+
+.panelTitle {
+  font-size:   1.15rem;
+  font-weight: 700;
+  color:       var(--c-text-main);
+  margin:      0 0 6px;
+}
+
+.panelSubtitle {
+  font-size:     .875rem;
+  color:         var(--c-text-sub);
+  margin:        0 0 22px;
+  padding-bottom:16px;
+  border-bottom: 1px solid var(--c-border);
+  line-height:   1.4;
+}
+
+/* ── Label y Select ────────────────────────────────────────── */
+.label {
+  display:     block;
+  font-size:   .82rem;
+  font-weight: 600;
+  color:       var(--c-text-sub);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.select {
+  width:         100%;
+  padding:       10px 12px;
+  border:        1.5px solid var(--c-border);
+  border-radius: var(--radius-md);
+  font-size:     .9rem;
+  color:         var(--c-text-main);
+  background:    #FAFAFA;
+  outline:       none;
+  margin-bottom: 24px;
+  appearance:    none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:   no-repeat;
+  background-position: right 12px center;
+  cursor:        pointer;
+  transition:    border-color .15s, box-shadow .15s;
+}
+
+.select:focus {
+  border-color: var(--c-blue);
+  box-shadow:   0 0 0 3px rgba(37,99,235,.12);
+  background:   #fff;
+}
+
+/* ── Botones del panel ─────────────────────────────────────── */
+.panelBtns {
+  display: flex;
+  gap:     10px;
+  justify-content: flex-end;
+}
+
+.cancelBtn {
+  padding:       9px 20px;
+  background:    transparent;
+  color:         var(--c-text-sub);
+  border:        1.5px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  font-size:     .875rem;
+  font-weight:   600;
+  cursor:        pointer;
+  transition:    background .15s, border-color .15s;
+}
+
+.cancelBtn:hover {
+  background:   #F1F5F9;
+  border-color: #CBD5E1;
+  color:        var(--c-text-main);
+}
+
+.confirmBtn {
+  padding:       9px 22px;
+  background:    var(--c-blue);
+  color:         #fff;
+  border:        none;
+  border-radius: var(--radius-sm);
+  font-size:     .875rem;
+  font-weight:   600;
+  cursor:        pointer;
+  transition:    background .15s, transform .12s;
+  letter-spacing:.2px;
+}
+
+.confirmBtn:hover:not(:disabled) {
+  background: var(--c-blue-hover);
+  transform:  translateY(-1px);
+}
+
+.confirmBtn:disabled {
+  opacity: .5;
+  cursor:  not-allowed;
+}
