@@ -12,6 +12,8 @@ app = FastAPI(
     version="1.0.0",
 )
 
+Base.metadata.create_all(bind=engine)
+
 app.include_router(tareas.router)
 
 # CORS — permite que el frontend React se comunique con el backend
