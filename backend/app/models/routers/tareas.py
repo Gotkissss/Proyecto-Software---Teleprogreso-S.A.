@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Query
 from typing import List, Optional
 from app.schemas.tarea import TareaResponse, EstadoServicio
+from app.schemas.tarea import TareaCreate
+from datetime import datetime
 
 router = APIRouter(prefix="/tareas", tags=["Tareas"])
-
 
 # 🔹 Mock data (temporal)
 tareas_mock = [
@@ -53,3 +54,27 @@ def get_tareas(
         tareas = [t for t in tareas if t["id_tecnico"] == id_tecnico]
 
     return tareas
+
+@router.post("/", response_model=TareaResponse)
+def create_tarea(tarea: TareaCreate):
+    # 🔹 Generar ID automático (simulado)
+    new_id = len(tareas_mock) + 1
+
+    nueva_tarea = {
+        "id_servicio": new_id,
+        "nombre": tarea.nombre,
+        "descripcion": tarea.descripcion,
+        "direccion": tarea.direccion,
+        "estado": "pendiente",  # siempre inicia así
+        "prioridad": tarea.prioridad,
+        "id_tecnico": tarea.id_tecnico,
+        "fecha_asignacion": datetime.now(),
+        "fecha_limite": None,
+        "fecha_inicio_real": None,
+        "fecha_fin_real": None
+    }
+
+    # 🔹 Guardar en mock
+    tareas_mock.append(nueva_tarea)
+
+    return nueva_tarea
