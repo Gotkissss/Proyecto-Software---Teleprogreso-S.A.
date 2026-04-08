@@ -6,9 +6,10 @@ uvicorn[standard]==0.29.0
 
 # Base de datos
 sqlalchemy==2.0.30
-asyncpg==0.29.0        # driver async para PostgreSQL
-psycopg2-binary==2.9.9 # driver sync (usado por Alembic)
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
 alembic==1.13.1
+geoalchemy2==0.15.1     
 
 # Autenticación JWT
 python-jose[cryptography]==3.3.0
