@@ -1,0 +1,268 @@
+/* ============================================================
+   DashboardPage.module.css
+   Panel de Control Operativo – Supervisor
+   Paleta: fondo gris claro, cards blancas, acentos azul #2563EB,
+   rojo #EF4444, naranja #F97316, verde #16A34A
+   ============================================================ */
+
+/* ── Variables locales ─────────────────────────────────────── */
+.page {
+  --c-bg:        #F0F2F5;
+  --c-surface:   #FFFFFF;
+  --c-border:    #E2E8F0;
+  --c-text-main: #0F172A;
+  --c-text-sub:  #64748B;
+  --c-blue:      #2563EB;
+  --c-blue-soft: #EFF6FF;
+  --c-green:     #16A34A;
+  --c-green-soft:#F0FDF4;
+  --c-orange:    #F97316;
+  --c-orange-soft:#FFF7ED;
+  --c-red:       #EF4444;
+  --c-red-soft:  #FEF2F2;
+  --c-avatar-bg: #DBEAFE;
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --shadow-card: 0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.05);
+  --shadow-hover:0 4px 16px rgba(37,99,235,.18);
+  --font:        'Inter', 'Segoe UI', sans-serif;
+
+  font-family:  var(--font);
+  background:   var(--c-bg);
+  min-height:   100vh;
+  padding:      28px 32px 48px;
+  color:        var(--c-text-main);
+  box-sizing:   border-box;
+}
+
+/* ── Centro / loading ──────────────────────────────────────── */
+.center {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  min-height:      60vh;
+}
+
+.errorMsg {
+  color:     var(--c-red);
+  font-size: .9rem;
+  padding:   24px 32px;
+}
+
+/* ── Título de página ──────────────────────────────────────── */
+.title {
+  font-size:   1.6rem;
+  font-weight: 700;
+  letter-spacing: -.4px;
+  color:       var(--c-text-main);
+  margin:      0 0 6px;
+}
+
+.subtitle {
+  font-size:  .85rem;
+  color:      var(--c-text-sub);
+  margin:     0 0 28px;
+}
+
+/* ── Grid de métricas ──────────────────────────────────────── */
+.metricsGrid {
+  display:               grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:                   16px;
+  margin-bottom:         28px;
+}
+
+@media (max-width: 900px) {
+  .metricsGrid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 520px) {
+  .metricsGrid { grid-template-columns: 1fr; }
+}
+
+/* ── Tarjeta de métrica ────────────────────────────────────── */
+.metricCard {
+  background:    var(--c-surface);
+  border-radius: var(--radius-lg);
+  box-shadow:    var(--shadow-card);
+  padding:       20px 24px;
+  display:       flex;
+  flex-direction:column;
+  gap:           4px;
+  border-left:   4px solid transparent;
+  transition:    box-shadow .18s, transform .18s;
+  position:      relative;
+  overflow:      hidden;
+}
+
+.metricCard::before {
+  content:       '';
+  position:      absolute;
+  top:           0; right: 0;
+  width:         52px; height: 52px;
+  border-radius: 50%;
+  opacity:       .08;
+  transform:     translate(30%, -30%);
+}
+
+.metricCard.info    { border-left-color: var(--c-blue);   }
+.metricCard.info::before    { background: var(--c-blue);   }
+.metricCard.success { border-left-color: var(--c-green);  }
+.metricCard.success::before { background: var(--c-green);  }
+.metricCard.warning { border-left-color: var(--c-orange); }
+.metricCard.warning::before { background: var(--c-orange); }
+.metricCard.danger  { border-left-color: var(--c-red);    }
+.metricCard.danger::before  { background: var(--c-red);    }
+
+.metricCard.clickable {
+  cursor: pointer;
+}
+.metricCard.clickable:hover {
+  box-shadow: var(--shadow-hover);
+  transform:  translateY(-2px);
+}
+
+.metricValue {
+  font-size:   2rem;
+  font-weight: 800;
+  line-height: 1;
+  color:       var(--c-text-main);
+}
+
+.metricCard.info    .metricValue { color: var(--c-blue);   }
+.metricCard.success .metricValue { color: var(--c-green);  }
+.metricCard.warning .metricValue { color: var(--c-orange); }
+.metricCard.danger  .metricValue { color: var(--c-red);    }
+
+.metricLabel {
+  font-size:   .78rem;
+  font-weight: 500;
+  color:       var(--c-text-sub);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin-top:  4px;
+}
+
+/* ── Secciones generales ───────────────────────────────────── */
+.section {
+  background:    var(--c-surface);
+  border-radius: var(--radius-lg);
+  box-shadow:    var(--shadow-card);
+  padding:       20px 24px;
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size:   1rem;
+  font-weight: 700;
+  color:       var(--c-text-main);
+  margin:      0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.emptyMsg {
+  font-size: .875rem;
+  color:     var(--c-text-sub);
+  text-align:center;
+  padding:   24px 0;
+}
+
+/* ── Lista de técnicos ─────────────────────────────────────── */
+.tecnicosList {
+  list-style: none;
+  margin:     0;
+  padding:    0;
+  display:    flex;
+  flex-direction: column;
+  gap:        10px;
+}
+
+.tecnicoItem {
+  display:       flex;
+  align-items:   center;
+  gap:           12px;
+  padding:       10px 12px;
+  border-radius: var(--radius-md);
+  background:    #FAFAFA;
+  border:        1px solid var(--c-border);
+  transition:    background .15s;
+}
+.tecnicoItem:hover { background: var(--c-blue-soft); }
+
+.tecnicoAvatar {
+  width:           36px;
+  height:          36px;
+  border-radius:   50%;
+  background:      var(--c-avatar-bg);
+  color:           var(--c-blue);
+  font-weight:     700;
+  font-size:       .9rem;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  flex-shrink:     0;
+}
+
+.tecnicoInfo {
+  flex:           1;
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+}
+
+.tecnicoNombre {
+  font-size:   .875rem;
+  font-weight: 600;
+  color:       var(--c-text-main);
+}
+
+.tecnicoTareas {
+  font-size:  .76rem;
+  color:      var(--c-text-sub);
+}
+
+/* ── Lista de tareas ───────────────────────────────────────── */
+.tareasList {
+  list-style: none;
+  margin:     0;
+  padding:    0;
+  display:    flex;
+  flex-direction: column;
+  gap:        8px;
+}
+
+.tareaItem {
+  display:       flex;
+  align-items:   center;
+  justify-content: space-between;
+  gap:           12px;
+  padding:       10px 12px;
+  border-radius: var(--radius-md);
+  background:    #FAFAFA;
+  border:        1px solid var(--c-border);
+  cursor:        pointer;
+  transition:    background .15s, box-shadow .15s;
+}
+.tareaItem:hover {
+  background:  var(--c-blue-soft);
+  box-shadow:  0 2px 8px rgba(37,99,235,.10);
+}
+
+.tareaInfo {
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+  flex:           1;
+}
+
+.tareaTitulo {
+  font-size:   .875rem;
+  font-weight: 600;
+  color:       var(--c-text-main);
+}
+
+.tareaTecnico {
+  font-size: .76rem;
+  color:     var(--c-text-sub);
+}

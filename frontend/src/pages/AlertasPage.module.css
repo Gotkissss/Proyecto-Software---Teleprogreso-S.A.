@@ -1,0 +1,196 @@
+/* ============================================================
+   AlertasPage.module.css
+   Gestión de Alertas Operativas
+   Diseño: lista lateral de incidentes, panel de detalle derecho,
+   badges de severidad rojo/naranja, botones azul primario
+   ============================================================ */
+
+.page {
+  --c-bg:         #F0F2F5;
+  --c-surface:    #FFFFFF;
+  --c-border:     #E2E8F0;
+  --c-text-main:  #0F172A;
+  --c-text-sub:   #64748B;
+  --c-blue:       #2563EB;
+  --c-blue-hover: #1D4ED8;
+  --c-blue-soft:  #EFF6FF;
+  --c-red:        #EF4444;
+  --c-red-soft:   #FEF2F2;
+  --c-red-border: #FECACA;
+  --c-orange:     #F97316;
+  --c-orange-soft:#FFF7ED;
+  --c-orange-border:#FED7AA;
+  --c-green:      #16A34A;
+  --c-avatar-bg:  #DBEAFE;
+  --radius-sm:    6px;
+  --radius-md:    10px;
+  --radius-lg:    14px;
+  --shadow-card:  0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.05);
+  --font:         'Inter', 'Segoe UI', sans-serif;
+
+  font-family:  var(--font);
+  background:   var(--c-bg);
+  min-height:   100vh;
+  padding:      28px 32px 48px;
+  color:        var(--c-text-main);
+  box-sizing:   border-box;
+}
+
+/* ── Centro / loading ──────────────────────────────────────── */
+.center {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  min-height:      60vh;
+}
+
+.errorMsg {
+  color:     var(--c-red);
+  font-size: .9rem;
+  padding:   24px 32px;
+}
+
+/* ── Título ────────────────────────────────────────────────── */
+.title {
+  font-size:      1.6rem;
+  font-weight:    700;
+  letter-spacing: -.4px;
+  color:          var(--c-text-main);
+  margin:         0 0 24px;
+}
+
+/* ── Estado vacío ──────────────────────────────────────────── */
+.emptyState {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  justify-content:center;
+  padding:        64px 32px;
+  background:     var(--c-surface);
+  border-radius:  var(--radius-lg);
+  box-shadow:     var(--shadow-card);
+}
+
+.emptyIcon {
+  font-size:   3rem;
+  color:       var(--c-green);
+  margin:      0 0 12px;
+  line-height: 1;
+}
+
+.emptyMsg {
+  font-size:  .95rem;
+  color:      var(--c-text-sub);
+  font-weight:500;
+}
+
+/* ── Lista de alertas ──────────────────────────────────────── */
+.alertasList {
+  list-style: none;
+  margin:     0;
+  padding:    0;
+  display:    flex;
+  flex-direction: column;
+  gap:        12px;
+}
+
+/* ── Item de alerta ────────────────────────────────────────── */
+.alertaItem {
+  background:    var(--c-surface);
+  border-radius: var(--radius-lg);
+  box-shadow:    var(--shadow-card);
+  padding:       18px 20px;
+  border-left:   4px solid transparent;
+  display:       flex;
+  flex-direction:column;
+  gap:           8px;
+  transition:    box-shadow .18s, transform .18s;
+  animation:     slideIn .25s ease both;
+}
+
+.alertaItem:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,.10);
+  transform:  translateY(-1px);
+}
+
+/* Variantes por nivel */
+.alertaItem.critico {
+  border-left-color: var(--c-red);
+  background:        linear-gradient(to right, var(--c-red-soft) 0%, var(--c-surface) 60%);
+}
+
+.alertaItem.advertencia {
+  border-left-color: var(--c-orange);
+  background:        linear-gradient(to right, var(--c-orange-soft) 0%, var(--c-surface) 60%);
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* ── Cabecera de la alerta ─────────────────────────────────── */
+.alertaHeader {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+}
+
+.alertaHora {
+  font-size:   .76rem;
+  color:       var(--c-text-sub);
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Cuerpo de la alerta ───────────────────────────────────── */
+.alertaMensaje {
+  font-size:   .9rem;
+  font-weight: 600;
+  color:       var(--c-text-main);
+  line-height: 1.45;
+  margin:      0;
+}
+
+.alertaTecnico {
+  font-size: .82rem;
+  color:     var(--c-text-sub);
+  margin:    0;
+}
+
+.alertaTecnico strong {
+  color:      var(--c-text-main);
+  font-weight:600;
+}
+
+.alertaTarea {
+  font-size: .82rem;
+  color:     var(--c-text-sub);
+  margin:    0;
+}
+
+/* ── Botón resolver ────────────────────────────────────────── */
+.resolverBtn {
+  align-self:      flex-start;
+  margin-top:      4px;
+  padding:         7px 16px;
+  background:      var(--c-blue);
+  color:           #fff;
+  border:          none;
+  border-radius:   var(--radius-sm);
+  font-size:       .82rem;
+  font-weight:     600;
+  cursor:          pointer;
+  transition:      background .15s, transform .12s;
+  letter-spacing:  .2px;
+}
+
+.resolverBtn:hover:not(:disabled) {
+  background: var(--c-blue-hover);
+  transform:  translateY(-1px);
+}
+
+.resolverBtn:disabled {
+  opacity: .55;
+  cursor:  not-allowed;
+}
