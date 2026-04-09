@@ -2,16 +2,32 @@
  * pages/ReasignacionPage.jsx
  * ---------------------------------------------------------------------------
  * Permite al supervisor ver tareas asignadas y reasignarlas a otro técnico.
- * Conectado a PATCH /tareas/{id}/reasignar de Gualim.
+ * 
+ * Mientras el backend no tenga los endpoints completos, usa datos MOCK.
+ * Para activar el backend real: cambiar USE_MOCK a false.
  * ---------------------------------------------------------------------------
  */
 
 import { useEffect, useState } from 'react'
-import { getTareas, reasignarTarea } from '../api/tareaService'
-import { getTecnicos } from '../api/alertaService'
 import Spinner from '../components/ui/Spinner'
 import Badge from '../components/ui/Badge'
 import styles from './ReasignacionPage.module.css'
+
+const USE_MOCK = true
+
+const MOCK_TAREAS = [
+  { id: 1, titulo: 'Instalación fibra óptica - Los Álamos',  estado: 'pendiente',   tecnico: { id: 2, nombre_completo: 'Juan Pérez García' } },
+  { id: 2, titulo: 'Reparación de señal - El Ahorro',        estado: 'en_progreso', tecnico: { id: 2, nombre_completo: 'Juan Pérez García' } },
+  { id: 3, titulo: 'Mantenimiento - Carlos Mendoza',         estado: 'pendiente',   tecnico: { id: 3, nombre_completo: 'María López' } },
+  { id: 4, titulo: 'Instalación TV Cable - Sabor Latino',    estado: 'pendiente',   tecnico: null },
+]
+
+const MOCK_TECNICOS = [
+  { id: 2, nombre_completo: 'Juan Pérez García' },
+  { id: 3, nombre_completo: 'María López' },
+  { id: 4, nombre_completo: 'Carlos Hernández' },
+  { id: 5, nombre_completo: 'Ana Rodríguez' },
+]
 
 export default function ReasignacionPage() {
   const [tareas, setTareas]       = useState([])
@@ -19,7 +35,6 @@ export default function ReasignacionPage() {
   const [loading, setLoading]     = useState(true)
   const [error, setError]         = useState(null)
 
-  /* Estado del modal de reasignación */
   const [tareaSeleccionada, setTareaSeleccionada] = useState(null)
   const [tecnicoNuevo, setTecnicoNuevo]           = useState('')
   const [guardando, setGuardando]                 = useState(false)
@@ -28,12 +43,20 @@ export default function ReasignacionPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [t, tec] = await Promise.all([
-          getTareas({ estado: 'pendiente,en_curso' }),
-          getTecnicos(),
-        ])
-        setTareas(t)
-        setTecnicos(tec)
+        if (USE_MOCK) {
+          await new Promise((r) => setTimeout(r, 500))
+          setTareas(MOCK_TAREAS)
+          setTecnicos(MOCK_TECNICOS)
+        } else {
+          const { getTareas } = await import('../api/tareaService')
+          const { getTecnicos: fetchTecnicos } = await import('../api/alertaService')
+          const [t, tec] = await Promise.all([
+            getTareas({ estado: 'pendiente,en_curso' }),
+            fetchTecnicos(),
+          ])
+          setTareas(t)
+          setTecnicos(tec)
+        }
       } catch (err) {
         setError('No se pudieron cargar las tareas.')
         console.error(err)
@@ -48,18 +71,20 @@ export default function ReasignacionPage() {
     if (!tareaSeleccionada || !tecnicoNuevo) return
     setGuardando(true)
     try {
-      await reasignarTarea(tareaSeleccionada.id, Number(tecnicoNuevo))
+      if (!USE_MOCK) {
+        const { reasignarTarea } = await import('../api/tareaService')
+        await reasignarTarea(tareaSeleccionada.id, Number(tecnicoNuevo))
+      } else {
+        await new Promise((r) => setTimeout(r, 600))
+      }
       setTareas((prev) =>
         prev.map((t) =>
           t.id === tareaSeleccionada.id
-            ? {
-                ...t,
-                tecnico: tecnicos.find((tec) => tec.id === Number(tecnicoNuevo)),
-              }
+            ? { ...t, tecnico: tecnicos.find((tec) => tec.id === Number(tecnicoNuevo)) }
             : t
         )
       )
-      setExito(`Tarea reasignada correctamente.`)
+      setExito('Tarea reasignada correctamente.')
       setTareaSeleccionada(null)
       setTecnicoNuevo('')
       setTimeout(() => setExito(null), 3000)
@@ -105,8 +130,8 @@ export default function ReasignacionPage() {
                 <Badge
                   label={tarea.estado}
                   variant={
-                    tarea.estado === 'en_curso'  ? 'info'    :
-                    tarea.estado === 'retrasado' ? 'danger'  : 'warning'
+                    tarea.estado === 'en_progreso' ? 'info'    :
+                    tarea.estado === 'retrasado'   ? 'danger'  : 'warning'
                   }
                 />
                 <button
@@ -124,7 +149,6 @@ export default function ReasignacionPage() {
         </ul>
       )}
 
-      {/* ── Panel de reasignación ───────────────────── */}
       {tareaSeleccionada && (
         <div className={styles.overlay} onClick={() => setTareaSeleccionada(null)}>
           <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
@@ -146,10 +170,7 @@ export default function ReasignacionPage() {
             </select>
 
             <div className={styles.panelBtns}>
-              <button
-                className={styles.cancelBtn}
-                onClick={() => setTareaSeleccionada(null)}
-              >
+              <button className={styles.cancelBtn} onClick={() => setTareaSeleccionada(null)}>
                 Cancelar
               </button>
               <button

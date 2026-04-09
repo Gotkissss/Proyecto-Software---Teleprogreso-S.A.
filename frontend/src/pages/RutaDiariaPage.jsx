@@ -4,20 +4,20 @@
  * Pantalla "Mi Ruta Diaria" — muestra el cronograma de servicios del día.
  *
  * Datos: se obtienen de rutaService.getMiRuta()
- * Mientras el backend no esté listo, se usan datos MOCK (ver mock al final).
+ * Mientras el backend no tenga /servicios/mi-ruta, se usan datos MOCK.
  * Para activar el backend real: cambiar USE_MOCK a false.
  * ---------------------------------------------------------------------------
  */
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { getMiRuta, actualizarEstadoServicio } from '../api/rutaService'
+import { getMiRuta } from '../api/rutaService'
 import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
 import styles from './RutaDiariaPage.module.css'
 
-/* ─── Cambiar a false cuando el backend esté listo ─────────────────────── */
-const USE_MOCK = false
+/* ─── Cambiar a false cuando el backend tenga /servicios/mi-ruta ───────── */
+const USE_MOCK = true
 
 /* ── Iconos ──────────────────────────────────────────────────────────────── */
 const IconPin      = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -30,17 +30,17 @@ const IconAlert    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentC
 
 /* ── MOCK DATA ────────────────────────────────────────────────────────────── */
 const MOCK_RUTA = {
-  fecha: '2024-05-24',
+  fecha: new Date().toISOString().split('T')[0],
   tecnico: { nombre_completo: 'Juan Pérez', cargo: 'Técnico de Campo' },
-  resumen: { total_paradas: 8, duracion_estimada_h: 6.5, km_ruta: 42 },
+  resumen: { total_paradas: 6, duracion_estimada_h: 6.5, km_ruta: 42 },
   alerta: { mensaje: 'Tienes 1 servicio urgente pendiente en tu ruta.' },
   servicios: [
-    { id_servicio: 1, eta: '08:30', estado: 'completado',  prioridad: 'media',   nombre: 'Residencial Los Álamos - Bloque B', direccion: 'Calle 15, Ave. Circunvalaci', tipo: 'Reparación' },
-    { id_servicio: 2, eta: '09:45', estado: 'en_progreso', prioridad: 'urgente', nombre: 'Tienda El Ahorro',                   direccion: 'Barrio El Centro, 3 Cal',     tipo: 'Instalación' },
+    { id_servicio: 1, eta: '08:30', estado: 'completado',  prioridad: 'media',   nombre: 'Residencial Los Álamos - Bloque B', direccion: 'Calle 15, Ave. Circunvalación', tipo: 'Instalación' },
+    { id_servicio: 2, eta: '09:45', estado: 'en_progreso', prioridad: 'urgente', nombre: 'Tienda El Ahorro',                   direccion: 'Barrio El Centro, 3 Calle',     tipo: 'Reparación' },
     { id_servicio: 3, eta: '11:15', estado: 'pendiente',   prioridad: 'media',   nombre: 'Carlos Mendoza',                    direccion: 'Col. Universidad, Casa 4',    tipo: 'Mantenimiento' },
-    { id_servicio: 4, eta: '13:00', estado: 'pendiente',   prioridad: 'media',   nombre: 'Restaurante Sabor Latino',          direccion: 'Bo. Guamilito, 5 Ave 4 Ca',   tipo: 'Reparación' },
-    { id_servicio: 5, eta: '14:30', estado: 'pendiente',   prioridad: 'alta',    nombre: 'María Josefa Rodríguez',            direccion: 'Res. El Portal, Senda',       tipo: 'Mantenimiento' },
-    { id_servicio: 6, eta: '15:45', estado: 'pendiente',   prioridad: 'media',   nombre: 'Supermercado La Antorcha',          direccion: 'Salida a La Lima, KM',        tipo: 'Instalación' },
+    { id_servicio: 4, eta: '13:00', estado: 'pendiente',   prioridad: 'media',   nombre: 'Restaurante Sabor Latino',          direccion: 'Bo. Guamilito, 5 Ave 4 Calle',   tipo: 'Reparación' },
+    { id_servicio: 5, eta: '14:30', estado: 'pendiente',   prioridad: 'alta',    nombre: 'María Josefa Rodríguez',            direccion: 'Res. El Portal, Senda 3',       tipo: 'Mantenimiento' },
+    { id_servicio: 6, eta: '15:45', estado: 'pendiente',   prioridad: 'media',   nombre: 'Supermercado La Antorcha',          direccion: 'Salida a La Lima, KM 18.5',        tipo: 'Instalación' },
   ],
 }
 
@@ -50,12 +50,6 @@ const ESTADO_LABEL = {
   en_progreso: 'En Ruta',
   pendiente:   'Pendiente',
   cancelado:   'Cancelado',
-}
-
-const formatFecha = (isoDate) => {
-  if (!isoDate) return ''
-  const d = new Date(isoDate + 'T12:00:00')
-  return d.toLocaleDateString('es-GT', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
 /* ── Componente tarjeta de servicio ──────────────────────────────────────── */
@@ -68,19 +62,16 @@ function ServicioCard({ servicio, onVerDetalle }) {
       className={`${styles.card} ${isActive ? styles.cardActive : ''} ${isCompleted ? styles.cardCompleted : ''}`}
     >
       <div className={styles.cardMain}>
-        {/* ETA */}
         <div className={styles.etaCol}>
           <span className={styles.etaLabel}>ETA</span>
           <span className={styles.etaTime}>{servicio.eta}</span>
         </div>
 
-        {/* Línea de tiempo vertical */}
         <div className={styles.timeline}>
           <div className={`${styles.dot} ${styles[`dot_${servicio.estado}`]}`} />
           <div className={styles.line} />
         </div>
 
-        {/* Info del servicio */}
         <div className={styles.info}>
           <div className={styles.badges}>
             <Badge label={ESTADO_LABEL[servicio.estado] ?? servicio.estado} variant={servicio.estado} />
@@ -96,7 +87,6 @@ function ServicioCard({ servicio, onVerDetalle }) {
           <p className={styles.tipo}>{servicio.tipo}</p>
         </div>
 
-        {/* Chevron */}
         <button
           className={styles.chevronBtn}
           onClick={() => onVerDetalle(servicio)}
@@ -106,7 +96,6 @@ function ServicioCard({ servicio, onVerDetalle }) {
         </button>
       </div>
 
-      {/* Botón navegar (solo si activo o pendiente) */}
       {!isCompleted && (
         <button
           className={`${styles.navBtn} ${isActive ? styles.navBtnActive : ''}`}
@@ -132,7 +121,6 @@ export default function RutaDiariaPage() {
       setLoading(true)
       try {
         if (USE_MOCK) {
-          // Simular latencia de red
           await new Promise((r) => setTimeout(r, 600))
           setRuta(MOCK_RUTA)
         } else {
@@ -149,11 +137,9 @@ export default function RutaDiariaPage() {
   }, [])
 
   const handleVerDetalle = (servicio) => {
-    // TODO: Navegar a /servicios/:id cuando exista esa pantalla
     console.log('Ver detalle servicio:', servicio.id_servicio)
   }
 
-  /* ── Loading ── */
   if (loading) {
     return (
       <div className={styles.center}>
@@ -163,7 +149,6 @@ export default function RutaDiariaPage() {
     )
   }
 
-  /* ── Error ── */
   if (error) {
     return (
       <div className={styles.center}>
@@ -172,12 +157,12 @@ export default function RutaDiariaPage() {
     )
   }
 
-  const nombre = ruta?.tecnico?.nombre_completo ?? user?.nombre_completo ?? 'Técnico'
+  // user.nombre comes from /auth/me as "Nombre Apellido"
+  const nombre = ruta?.tecnico?.nombre_completo ?? user?.nombre ?? 'Técnico'
   const primerNombre = nombre.split(' ')[0]
 
   return (
     <div className={styles.page}>
-      {/* ── Encabezado del día ────────────────────────── */}
       <header className={styles.pageHeader}>
         <div className={styles.dateRow}>
           <span className={styles.dateLabel}>
@@ -190,7 +175,6 @@ export default function RutaDiariaPage() {
         <h2 className={styles.greeting}>Hola, {primerNombre}</h2>
       </header>
 
-      {/* ── Resumen del día ───────────────────────────── */}
       <section className={styles.resumen}>
         <div className={styles.resumenItem}>
           <span className={styles.resumenIcon}><IconPin /></span>
@@ -211,7 +195,6 @@ export default function RutaDiariaPage() {
         </div>
       </section>
 
-      {/* ── Alerta si existe ──────────────────────────── */}
       {ruta?.alerta && (
         <div className={styles.alertBanner}>
           <IconAlert />
@@ -219,7 +202,6 @@ export default function RutaDiariaPage() {
         </div>
       )}
 
-      {/* ── Lista de servicios ────────────────────────── */}
       <section className={styles.listSection}>
         <div className={styles.listHeader}>
           <h3 className={styles.listTitle}>Cronograma del Día</h3>

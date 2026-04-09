@@ -1,15 +1,5 @@
 /**
  * context/AuthContext.jsx
- * ---------------------------------------------------------------------------
- * Provee el estado de autenticación a toda la aplicación.
- * 
- * Expone:
- *   - user         → objeto con datos del usuario o null
- *   - isLoading    → true mientras verifica la sesión inicial
- *   - isAuthenticated → booleano
- *   - loginUser(correo, pass) → hace login y carga el perfil
- *   - logoutUser()           → limpia sesión y redirige
- * ---------------------------------------------------------------------------
  */
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
@@ -23,7 +13,6 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true)
   const navigate = useNavigate()
 
-  /* Verificar si hay una sesión activa al cargar la app */
   useEffect(() => {
     const checkSession = async () => {
       const token = localStorage.getItem('access_token')
@@ -35,7 +24,6 @@ export function AuthProvider({ children }) {
         const userData = await getMe()
         setUser(userData)
       } catch {
-        // Token inválido o expirado → el interceptor ya limpió el storage
         setUser(null)
       } finally {
         setIsLoading(false)
@@ -44,11 +32,19 @@ export function AuthProvider({ children }) {
     checkSession()
   }, [])
 
+  const getRedirectPath = (rol) => {
+    if (rol === 'admin' || rol === 'supervisor' || rol === 'gerente') {
+      return '/supervisor/dashboard'
+    }
+    return '/ruta'
+  }
+
   const loginUser = useCallback(async (correo, contrasena) => {
-    await login(correo, contrasena)      // guarda el token en localStorage
-    const userData = await getMe()       // carga el perfil
+    const loginData = await login(correo, contrasena)
+    const userData = await getMe()
     setUser(userData)
-    navigate('/ruta', { replace: true }) // redirige a la ruta diaria
+    const redirectPath = getRedirectPath(userData.rol || loginData.rol)
+    navigate(redirectPath, { replace: true })
   }, [navigate])
 
   const logoutUser = useCallback(async () => {
@@ -70,7 +66,6 @@ export function AuthProvider({ children }) {
   )
 }
 
-/** Hook conveniente para consumir el contexto */
 export function useAuth() {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth debe usarse dentro de <AuthProvider>')

@@ -1,38 +1,13 @@
 /**
  * SupervisorRoutes.jsx
  * ---------------------------------------------------------------------------
- * Define las rutas del supervisor para integrar en el App.jsx principal.
- * Wilson debe agregar esto al router de React en App.jsx o main.jsx.
- *
- * INSTRUCCIONES:
- * En tu App.jsx importa SupervisorRoutes y agrégalo al BrowserRouter
- * junto a las rutas de Diego.
+ * NOTA: Las rutas del supervisor ahora están integradas directamente 
+ * en App.jsx. Este archivo ya no se usa.
  * ---------------------------------------------------------------------------
  */
 
-import { Routes, Route, Navigate } from 'react-router-dom'
-import ProtectedRoute from './components/layout/ProtectedRoute'
-import SupervisorLayout from './components/layout/SupervisorLayout'
-import DashboardPage from './pages/DashboardPage'
-import AlertasPage from './pages/AlertasPage'
-import ReasignacionPage from './pages/ReasignacionPage'
-
-export default function SupervisorRoutes() {
-  return (
-    <Route
-      path="/supervisor"
-      element={
-        <ProtectedRoute>
-          <SupervisorLayout />
-        </ProtectedRoute>
-      }
-    >
-      {/* Redirige /supervisor → /supervisor/dashboard */}
-      <Route index element={<Navigate to="dashboard" replace />} />
-      <Route path="dashboard"    element={<DashboardPage />} />
-      <Route path="alertas"      element={<AlertasPage />} />
-      <Route path="reasignacion" element={<ReasignacionPage />} />
-    </Route>
-  )
-}
-
+// Las rutas del supervisor están en App.jsx:
+//   /supervisor              → redirige a /supervisor/dashboard
+//   /supervisor/dashboard    → DashboardPage
+//   /supervisor/alertas      → AlertasPage
+//   /supervisor/reasignacion → ReasignacionPage

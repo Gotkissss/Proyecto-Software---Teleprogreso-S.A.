@@ -3,16 +3,7 @@
  * ---------------------------------------------------------------------------
  * Pantalla "Pausas y Asistencia".
  *
- * Funcionalidades:
- *  - Cronómetro de tiempo activo en vivo
- *  - Botón PAUSAR / REANUDAR
- *  - Modal para seleccionar tipo de pausa
- *  - Historial de eventos del día
- *  - Tarjetas de Productividad y Tiempo en Pausa
- *  - Botón "Guardar y Finalizar Jornada"
- *
- * Datos: se obtienen de asistenciaService.getAsistenciaHoy()
- * Mientras el backend no esté listo, se usan datos MOCK.
+ * Mientras el backend no tenga /asistencias/*, se usan datos MOCK.
  * Para activar el backend real: cambiar USE_MOCK a false.
  * ---------------------------------------------------------------------------
  */
@@ -29,8 +20,8 @@ import { useTimer, formatSeconds } from '../hooks/useTimer'
 import Spinner from '../components/ui/Spinner'
 import styles from './PausasPage.module.css'
 
-/* ─── Cambiar a false cuando el backend esté listo ─────────────────────── */
-const USE_MOCK = false
+/* ─── Cambiar a false cuando el backend tenga /asistencias/* ───────────── */
+const USE_MOCK = true
 
 /* ── Iconos ──────────────────────────────────────────────────────────────── */
 const IconClock   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -38,7 +29,7 @@ const IconPause   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentCo
 const IconPlay    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
 const IconCheck   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
 const IconBolt    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-const IconTimer   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13"/><line x1="12" y1="3" x2="12" y2="5"/><line x1="19.07" y1="4.93" x2="17.66" y2="6.34"/><line x1="21" y1="13" x2="19" y2="13"/></svg>
+const IconTimer   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13"/><line x1="12" y1="3" x2="12" y2="5"/></svg>
 const IconHistory = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.01"/></svg>
 const IconX       = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
 const IconCoffee  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
@@ -46,12 +37,12 @@ const IconCoffee  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentCo
 /* ── MOCK DATA ────────────────────────────────────────────────────────────── */
 const MOCK_ASISTENCIA = {
   id_asistencia: 1,
-  fecha: '2024-05-24',
-  hora_entrada: '2024-05-24T08:00:00Z',
+  fecha: new Date().toISOString().split('T')[0],
+  hora_entrada: new Date().toISOString(),
   hora_salida: null,
-  tiempo_activo_segundos: 15621,   // 4h 20m 21s
+  tiempo_activo_segundos: 15621,
   en_pausa: false,
-  tiempo_en_pausa_segundos: 3900, // 1h 05m
+  tiempo_en_pausa_segundos: 3900,
   productividad_pct: 92,
   historial: [
     { tipo: 'entrada',    label: 'Inicio de Jornada',       hora_inicio: '08:00 AM', hora_fin: null,       duracion_segundos: null },
@@ -94,7 +85,7 @@ function ModalPausa({ tipos, onSelect, onClose, loading }) {
           </button>
         </div>
         <p className={styles.modalSubtitle}>
-          Registra tus pausas para cumplir con la normativa operativa de Teleprogreso.
+          Registra tus pausas para cumplir con la normativa operativa.
         </p>
         <div className={styles.modalList}>
           {tipos.map((t) => (
@@ -152,14 +143,12 @@ export default function PausasPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [successMsg, setSuccessMsg] = useState(null)
 
-  /* Cronómetro — corre si NO estamos en pausa */
   const enPausa = asistencia?.en_pausa ?? false
   const { formatted: tiempoActivo } = useTimer(
     asistencia?.tiempo_activo_segundos ?? 0,
     !enPausa && !!asistencia?.hora_entrada && !asistencia?.hora_salida
   )
 
-  /* Cargar datos al montar */
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
@@ -185,7 +174,6 @@ export default function PausasPage() {
     fetchData()
   }, [])
 
-  /* Iniciar pausa */
   const handleIniciarPausa = async (tipoPausaId) => {
     setActionLoading(true)
     try {
@@ -193,7 +181,6 @@ export default function PausasPage() {
         const updated = await iniciarPausa(tipoPausaId)
         setAsistencia(updated)
       } else {
-        // Mock: simular respuesta
         setAsistencia((prev) => ({ ...prev, en_pausa: true }))
       }
       setShowModal(false)
@@ -204,7 +191,6 @@ export default function PausasPage() {
     }
   }
 
-  /* Finalizar pausa */
   const handleReanudar = async () => {
     setActionLoading(true)
     try {
@@ -221,7 +207,6 @@ export default function PausasPage() {
     }
   }
 
-  /* Finalizar jornada */
   const handleFinalizarJornada = async () => {
     if (!window.confirm('¿Confirmas que deseas finalizar la jornada de hoy?')) return
     setActionLoading(true)
@@ -232,10 +217,7 @@ export default function PausasPage() {
         await new Promise((r) => setTimeout(r, 800))
       }
       setSuccessMsg('¡Jornada finalizada! Tu estado ha sido actualizado.')
-      setAsistencia((prev) => ({
-        ...prev,
-        hora_salida: new Date().toISOString(),
-      }))
+      setAsistencia((prev) => ({ ...prev, hora_salida: new Date().toISOString() }))
     } catch (err) {
       setError(err?.response?.data?.detail || 'Error al finalizar jornada.')
     } finally {
@@ -243,7 +225,6 @@ export default function PausasPage() {
     }
   }
 
-  /* ── Loading ── */
   if (loading) {
     return (
       <div className={styles.center}>
@@ -253,7 +234,6 @@ export default function PausasPage() {
     )
   }
 
-  /* ── Error ── */
   if (error && !asistencia) {
     return (
       <div className={styles.center}>
@@ -266,7 +246,6 @@ export default function PausasPage() {
 
   return (
     <div className={styles.page}>
-      {/* ── Hero: cronómetro ──────────────────────────── */}
       <section className={styles.hero}>
         <p className={styles.jornadaLabel}>
           Jornada de Hoy:{' '}
@@ -277,7 +256,6 @@ export default function PausasPage() {
             : ''}
         </p>
 
-        {/* Reloj circular */}
         <div className={`${styles.clockRing} ${enPausa ? styles.clockRingPaused : ''}`}>
           <span className={styles.clockIcon}><IconClock /></span>
           <span className={`${styles.clockTime} ${enPausa ? styles.clockTimePaused : ''}`}>
@@ -287,10 +265,9 @@ export default function PausasPage() {
         </div>
 
         <p className={styles.normativaText}>
-          Registra tus pausas obligatorias para cumplir con la normativa operativa de Teleprogreso.
+          Registra tus pausas obligatorias para cumplir con la normativa operativa.
         </p>
 
-        {/* Botón pausar / reanudar */}
         {!jornadaFinalizada && (
           <button
             className={`${styles.pauseBtn} ${enPausa ? styles.pauseBtnActive : ''}`}
@@ -305,7 +282,6 @@ export default function PausasPage() {
         )}
       </section>
 
-      {/* ── Métricas ──────────────────────────────────── */}
       <section className={styles.metrics}>
         <div className={styles.metricCard}>
           <span className={styles.metricIcon}><IconBolt /></span>
@@ -327,7 +303,6 @@ export default function PausasPage() {
         </div>
       </section>
 
-      {/* ── Historial ────────────────────────────────── */}
       <section className={styles.historial}>
         <div className={styles.historialHeader}>
           <span className={styles.historialTitle}>
@@ -344,7 +319,6 @@ export default function PausasPage() {
         </div>
       </section>
 
-      {/* ── Mensaje de éxito ──────────────────────────── */}
       {successMsg && (
         <div className={styles.successBanner}>
           <IconCheck />
@@ -352,12 +326,10 @@ export default function PausasPage() {
         </div>
       )}
 
-      {/* ── Error inline ─────────────────────────────── */}
       {error && asistencia && (
         <div className={styles.errorBanner}>{error}</div>
       )}
 
-      {/* ── Botón finalizar jornada ───────────────────── */}
       {!jornadaFinalizada ? (
         <div className={styles.finalizarWrap}>
           <button
@@ -381,7 +353,6 @@ export default function PausasPage() {
         </div>
       )}
 
-      {/* ── Modal de tipos de pausa ───────────────────── */}
       {showModal && (
         <ModalPausa
           tipos={tiposPausa}
