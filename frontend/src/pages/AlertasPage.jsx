@@ -1,83 +1,117 @@
 /**
- * pages/DashboardPage.jsx
+ * pages/AlertasPage.jsx
  * ---------------------------------------------------------------------------
- * Dashboard principal del supervisor.
- * Muestra: técnicos activos, tareas completadas, pendientes y en retraso.
- * 
- * Mientras el backend no tenga /metricas/supervisor, usa datos MOCK.
+ * Gestión de alertas operativas del supervisor.
+ * Muestra retrasos, técnicos sin asignar, incidencias, etc.
+ *
+ * Mientras el backend no tenga /alertas, usa datos MOCK.
  * Para activar el backend real: cambiar USE_MOCK a false.
  * ---------------------------------------------------------------------------
  */
 
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import Spinner from '../components/ui/Spinner'
 import Badge from '../components/ui/Badge'
-import styles from './DashboardPage.module.css'
+import styles from './AlertasPage.module.css'
 
 const USE_MOCK = true
 
 /* ── MOCK DATA ───────────────────────────────────────────────── */
-const MOCK_METRICAS = {
-  tecnicos_activos: 4,
-  tareas_completadas: 12,
-  tareas_pendientes: 8,
-  tareas_retrasadas: 2,
+const MOCK_ALERTAS = [
+  {
+    id: 1,
+    nivel: 'critico',
+    mensaje: 'Tarea con más de 2 horas de retraso',
+    tecnico: { nombre_completo: 'Juan Pérez García' },
+    tarea: { titulo: 'Reparación de señal - Tienda El Ahorro' },
+    fecha_hora: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    resuelta: false,
+  },
+  {
+    id: 2,
+    nivel: 'advertencia',
+    mensaje: 'Tarea sin asignar hace más de 1 hora',
+    tecnico: null,
+    tarea: { titulo: 'Instalación TV Cable - Restaurante Sabor Latino' },
+    fecha_hora: new Date(Date.now() - 75 * 60 * 1000).toISOString(),
+    resuelta: false,
+  },
+  {
+    id: 3,
+    nivel: 'advertencia',
+    mensaje: 'Técnico en pausa prolongada (más de 45 min)',
+    tecnico: { nombre_completo: 'Carlos Hernández' },
+    tarea: null,
+    fecha_hora: new Date(Date.now() - 50 * 60 * 1000).toISOString(),
+    resuelta: false,
+  },
+  {
+    id: 4,
+    nivel: 'critico',
+    mensaje: 'Incidencia reportada por el técnico en el sitio',
+    tecnico: { nombre_completo: 'María López' },
+    tarea: { titulo: 'Mantenimiento preventivo - Carlos Mendoza' },
+    fecha_hora: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+    resuelta: false,
+  },
+]
+
+/* ── Helpers ─────────────────────────────────────────────────── */
+const formatHora = (isoString) => {
+  const fecha = new Date(isoString)
+  const ahora = new Date()
+  const diffMin = Math.floor((ahora - fecha) / (1000 * 60))
+
+  if (diffMin < 1) return 'Hace un momento'
+  if (diffMin < 60) return `Hace ${diffMin} min`
+  const diffH = Math.floor(diffMin / 60)
+  if (diffH < 24) return `Hace ${diffH} h`
+  return fecha.toLocaleDateString('es-GT', { day: 'numeric', month: 'short' })
 }
 
-const MOCK_TECNICOS = [
-  { id: 1, nombre_completo: 'Juan Pérez García',   estado: 'activo',   tareas_asignadas: 6 },
-  { id: 2, nombre_completo: 'María López',         estado: 'activo',   tareas_asignadas: 4 },
-  { id: 3, nombre_completo: 'Carlos Hernández',    estado: 'en_pausa', tareas_asignadas: 3 },
-  { id: 4, nombre_completo: 'Ana Rodríguez',       estado: 'activo',   tareas_asignadas: 5 },
-]
-
-const MOCK_TAREAS = [
-  { id: 1, titulo: 'Instalación fibra óptica - Los Álamos',  estado: 'pendiente',   tecnico: { nombre_completo: 'Juan Pérez García' } },
-  { id: 2, titulo: 'Reparación de señal - El Ahorro',        estado: 'en_progreso', tecnico: { nombre_completo: 'María López' } },
-  { id: 3, titulo: 'Mantenimiento preventivo - Carlos M.',   estado: 'completado',  tecnico: { nombre_completo: 'Carlos Hernández' } },
-  { id: 4, titulo: 'Instalación TV Cable - Sabor Latino',    estado: 'pendiente',   tecnico: { nombre_completo: 'Ana Rodríguez' } },
-  { id: 5, titulo: 'Revisión equipo - María Josefa R.',      estado: 'pendiente',   tecnico: { nombre_completo: 'Juan Pérez García' } },
-]
-
-export default function DashboardPage() {
-  const navigate = useNavigate()
-
-  const [metricas, setMetricas]         = useState(null)
-  const [tecnicosList, setTecnicosList] = useState([])
-  const [tareasList, setTareasList]     = useState([])
-  const [loading, setLoading]           = useState(true)
-  const [error, setError]               = useState(null)
+export default function AlertasPage() {
+  const [alertas, setAlertas] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [resolviendo, setResolviendo] = useState(null)
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchAlertas = async () => {
       try {
         if (USE_MOCK) {
-          await new Promise((r) => setTimeout(r, 600))
-          setMetricas(MOCK_METRICAS)
-          setTecnicosList(MOCK_TECNICOS)
-          setTareasList(MOCK_TAREAS)
+          await new Promise((r) => setTimeout(r, 500))
+          setAlertas(MOCK_ALERTAS)
         } else {
-          const { getMetricas, getTecnicos } = await import('../api/alertaService')
-          const { getTareas } = await import('../api/tareaService')
-          const [m, tecnicos, tareas] = await Promise.all([
-            getMetricas(),
-            getTecnicos(),
-            getTareas(),
-          ])
-          setMetricas(m)
-          setTecnicosList(tecnicos)
-          setTareasList(tareas)
+          const { getAlertas } = await import('../api/alertaService')
+          const data = await getAlertas()
+          setAlertas(data)
         }
       } catch (err) {
-        setError('No se pudieron cargar los datos del dashboard.')
+        setError('No se pudieron cargar las alertas.')
         console.error(err)
       } finally {
         setLoading(false)
       }
     }
-    fetchData()
+    fetchAlertas()
   }, [])
+
+  const handleResolver = async (id) => {
+    setResolviendo(id)
+    try {
+      if (!USE_MOCK) {
+        const { resolverAlerta } = await import('../api/alertaService')
+        await resolverAlerta(id)
+      } else {
+        await new Promise((r) => setTimeout(r, 500))
+      }
+      setAlertas((prev) => prev.filter((a) => a.id !== id))
+    } catch (err) {
+      console.error('Error al resolver alerta:', err)
+    } finally {
+      setResolviendo(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -91,93 +125,59 @@ export default function DashboardPage() {
     return <p className={styles.errorMsg}>{error}</p>
   }
 
+  const alertasActivas = alertas.filter((a) => !a.resuelta)
+
   return (
     <div className={styles.page}>
-      <h1 className={styles.title}>Dashboard</h1>
+      <h1 className={styles.title}>Alertas operativas</h1>
 
-      <section className={styles.metricsGrid}>
-        <MetricCard label="Técnicos activos"   value={metricas?.tecnicos_activos ?? 0}   variant="info" />
-        <MetricCard label="Tareas completadas"  value={metricas?.tareas_completadas ?? 0} variant="success" />
-        <MetricCard label="Tareas pendientes"   value={metricas?.tareas_pendientes ?? 0}  variant="warning" />
-        <MetricCard
-          label="En retraso"
-          value={metricas?.tareas_retrasadas ?? 0}
-          variant="danger"
-          onClick={() => navigate('/supervisor/alertas')}
-          clickable
-        />
-      </section>
-
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Técnicos hoy</h2>
-        {tecnicosList.length === 0 ? (
-          <p className={styles.emptyMsg}>No hay técnicos registrados.</p>
-        ) : (
-          <ul className={styles.tecnicosList}>
-            {tecnicosList.map((tec) => (
-              <li key={tec.id} className={styles.tecnicoItem}>
-                <div className={styles.tecnicoAvatar}>
-                  {tec.nombre_completo?.[0]?.toUpperCase() ?? 'T'}
-                </div>
-                <div className={styles.tecnicoInfo}>
-                  <span className={styles.tecnicoNombre}>{tec.nombre_completo}</span>
-                  <span className={styles.tecnicoTareas}>
-                    {tec.tareas_asignadas ?? 0} tareas asignadas
-                  </span>
-                </div>
+      {alertasActivas.length === 0 ? (
+        <div className={styles.emptyState}>
+          <div className={styles.emptyIcon}>✓</div>
+          <p className={styles.emptyMsg}>No hay alertas activas por el momento.</p>
+        </div>
+      ) : (
+        <ul className={styles.alertasList}>
+          {alertasActivas.map((alerta) => (
+            <li
+              key={alerta.id}
+              className={`${styles.alertaItem} ${styles[alerta.nivel]}`}
+            >
+              <div className={styles.alertaHeader}>
                 <Badge
-                  label={tec.estado ?? 'activo'}
-                  variant={tec.estado === 'activo' ? 'success' : 'warning'}
+                  label={alerta.nivel === 'critico' ? 'Crítico' : 'Advertencia'}
+                  variant={alerta.nivel === 'critico' ? 'danger' : 'warning'}
                 />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                <span className={styles.alertaHora}>
+                  {formatHora(alerta.fecha_hora)}
+                </span>
+              </div>
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Tareas recientes</h2>
-        {tareasList.length === 0 ? (
-          <p className={styles.emptyMsg}>No hay tareas registradas.</p>
-        ) : (
-          <ul className={styles.tareasList}>
-            {tareasList.slice(0, 5).map((tarea) => (
-              <li
-                key={tarea.id}
-                className={styles.tareaItem}
-                onClick={() => navigate('/supervisor/reasignacion')}
+              <p className={styles.alertaMensaje}>{alerta.mensaje}</p>
+
+              {alerta.tecnico && (
+                <p className={styles.alertaTecnico}>
+                  Técnico: <strong>{alerta.tecnico.nombre_completo}</strong>
+                </p>
+              )}
+
+              {alerta.tarea && (
+                <p className={styles.alertaTarea}>
+                  Tarea: {alerta.tarea.titulo}
+                </p>
+              )}
+
+              <button
+                className={styles.resolverBtn}
+                onClick={() => handleResolver(alerta.id)}
+                disabled={resolviendo === alerta.id}
               >
-                <div className={styles.tareaInfo}>
-                  <span className={styles.tareaTitulo}>{tarea.titulo}</span>
-                  <span className={styles.tareaTecnico}>
-                    {tarea.tecnico?.nombre_completo ?? 'Sin asignar'}
-                  </span>
-                </div>
-                <Badge
-                  label={tarea.estado}
-                  variant={
-                    tarea.estado === 'completado'  ? 'success' :
-                    tarea.estado === 'en_progreso' ? 'info'    :
-                    tarea.estado === 'retrasado'   ? 'danger'  : 'warning'
-                  }
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
-  )
-}
-
-function MetricCard({ label, value, variant, onClick, clickable }) {
-  return (
-    <div
-      className={`${styles.metricCard} ${styles[variant]} ${clickable ? styles.clickable : ''}`}
-      onClick={onClick}
-    >
-      <span className={styles.metricValue}>{value}</span>
-      <span className={styles.metricLabel}>{label}</span>
+                {resolviendo === alerta.id ? 'Resolviendo...' : 'Marcar como resuelta'}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
