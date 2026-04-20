@@ -153,5 +153,19 @@ async def iniciar_tarea(
             status_code=403,
             detail="No tienes permiso para iniciar esta tarea"
         )
+    
+    # 3. Validar que no esté iniciada
+    if tarea.fecha_inicio is not None:
+        raise HTTPException(
+            status_code=400,
+            detail="La tarea ya fue iniciada"
+        )
+    
+    # 4. Registrar inicio
+    tarea.fecha_inicio = date.today()
 
+    return {
+        "message": "Tarea iniciada correctamente",
+        "id_tarea": tarea.id_tarea
+    }
     
