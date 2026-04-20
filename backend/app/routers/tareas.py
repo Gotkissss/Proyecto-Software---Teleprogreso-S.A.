@@ -3,6 +3,9 @@ from typing import List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
+from datetime import date
+from app.api.deps import get_current_empleado
+from app.models.empleado import Empleado
 
 from app.schemas.tarea import (
     TareaResponse,
@@ -120,3 +123,49 @@ async def reasignar_tarea(
     db.add(nueva_asignacion)
 
     return tarea
+
+@router.patch("/{id}/iniciar")
+async def iniciar_tarea(
+    id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: Empleado = Depends(get_current_empleado),
+):
+    # 1. Buscar la tarea
+    result = await db.execute(
+        select(Tarea).where(Tarea.id_tarea == id)
+    )
+    tarea = result.scalar_one_or_none()
+
+    if not tarea:
+        raise HTTPException(status_code=404, detail="Tarea no encontrada")
+
+    # 2. Validar que el técnico esté asignado
+    result = await db.execute(
+        select(EmpleadoTarea).where(
+            EmpleadoTarea.id_tarea == id,
+            EmpleadoTarea.id_empleado == current_user.id_empleado
+        )
+    )
+    asignacion = result.scalar_one_or_none()
+
+    if not asignacion:
+        raise HTTPException(
+            status_code=403,
+            detail="No tienes permiso para iniciar esta tarea"
+        )
+    
+    # 3. Validar que no esté iniciada
+    if tarea.fecha_inicio is not None:
+        raise HTTPException(
+            status_code=400,
+            detail="La tarea ya fue iniciada"
+        )
+    
+    # 4. Registrar inicio
+    tarea.fecha_inicio = date.today()
+
+    return {
+        "message": "Tarea iniciada correctamente",
+        "id_tarea": tarea.id_tarea
+    }
+    

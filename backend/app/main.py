@@ -8,6 +8,8 @@ import app.models  # noqa: F401
 # --------- Routers ---------------
 from app.api.routers.auth import router as auth_router
 from app.routers.tareas import router as tareas_router
+from app.routers.asistencia import router as asistencia_router
+
 
 app = FastAPI(
     title="Teleprogreso S.A.",
@@ -27,6 +29,7 @@ app.add_middleware(
 # ----- Registrar routers --------------------------------
 app.include_router(auth_router)
 app.include_router(tareas_router)
+app.include_router(asistencia_router)
 
 
 @app.get("/")
