@@ -3,6 +3,9 @@ from typing import List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
+from datetime import date
+from app.api.deps import get_current_empleado
+from app.models.empleado import Empleado
 
 from app.schemas.tarea import (
     TareaResponse,
