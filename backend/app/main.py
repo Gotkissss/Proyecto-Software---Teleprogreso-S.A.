@@ -9,6 +9,7 @@ import app.models  # noqa: F401
 from app.api.routers.auth import router as auth_router
 from app.routers.tareas import router as tareas_router
 from app.routers.asistencia import router as asistencia_router
+from app.routers.descanso import router as descanso_router
 
 
 app = FastAPI(
@@ -30,6 +31,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(tareas_router)
 app.include_router(asistencia_router)
+app.include_router(descanso_router)
 
 
 @app.get("/")
