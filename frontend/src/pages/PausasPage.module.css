@@ -439,3 +439,60 @@
   font-size: 12px;
   color: var(--color-text-muted);
 }
+
+.estadoBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.estadoDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.entradaWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.entradaBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-8);
+  height: 60px;
+  border-radius: var(--radius-full);
+  background: var(--color-success);
+  color: white;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(22,163,74,0.4);
+  transition: background var(--transition), transform var(--transition);
+}
+.entradaBtn svg { width: 22px; height: 22px; }
+.entradaBtn:hover:not(:disabled) {
+  background: #15803d;
+  transform: translateY(-1px);
+}
+.entradaBtn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.historialVacio {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--space-5) 0;
+}

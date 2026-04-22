@@ -1,29 +1,17 @@
-/**
- * pages/PausasPage.jsx
- * ---------------------------------------------------------------------------
- * Pantalla "Pausas y Asistencia".
- *
- * Mientras el backend no tenga /asistencias/*, se usan datos MOCK.
- * Para activar el backend real: cambiar USE_MOCK a false.
- * ---------------------------------------------------------------------------
- */
-
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   getAsistenciaHoy,
+  registrarEntrada,
   iniciarPausa,
   finalizarPausa,
   finalizarJornada,
   getTiposPausa,
 } from '../api/asistenciaService'
-import { useTimer, formatSeconds } from '../hooks/useTimer'
 import Spinner from '../components/ui/Spinner'
 import styles from './PausasPage.module.css'
 
-/* ─── Cambiar a false cuando el backend tenga /asistencias/* ───────────── */
 const USE_MOCK = true
 
-/* ── Iconos ──────────────────────────────────────────────────────────────── */
 const IconClock   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
 const IconPause   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
 const IconPlay    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -33,23 +21,9 @@ const IconTimer   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentCo
 const IconHistory = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.01"/></svg>
 const IconX       = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
 const IconCoffee  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+const IconLogin   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
 
-/* ── MOCK DATA ────────────────────────────────────────────────────────────── */
-const MOCK_ASISTENCIA = {
-  id_asistencia: 1,
-  fecha: new Date().toISOString().split('T')[0],
-  hora_entrada: new Date().toISOString(),
-  hora_salida: null,
-  tiempo_activo_segundos: 15621,
-  en_pausa: false,
-  tiempo_en_pausa_segundos: 3900,
-  productividad_pct: 92,
-  historial: [
-    { tipo: 'entrada',    label: 'Inicio de Jornada',       hora_inicio: '08:00 AM', hora_fin: null,       duracion_segundos: null },
-    { tipo: 'pausa',      label: 'Pausa de Almuerzo',       hora_inicio: '12:30 PM', hora_fin: '01:30 PM', duracion_segundos: 3600 },
-    { tipo: 'pausa',      label: 'Pausa Técnica (Soporte)', hora_inicio: '03:15 PM', hora_fin: '03:20 PM', duracion_segundos: 300  },
-  ],
-}
+const JORNADA_TOTAL_SEGUNDOS = 8 * 3600 // 8 horas
 
 const MOCK_TIPOS_PAUSA = [
   { id: 'almuerzo', label: 'Pausa de Almuerzo',       duracion_max_min: 60 },
@@ -57,11 +31,19 @@ const MOCK_TIPOS_PAUSA = [
   { id: 'personal', label: 'Pausa Personal',           duracion_max_min: 10 },
 ]
 
-/* ── Helpers ─────────────────────────────────────────────────────────────── */
 const secsToHHMM = (s) => {
   const h = Math.floor(s / 3600)
   const m = Math.floor((s % 3600) / 60)
   return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00`
+}
+
+const formatCountdown = (seconds) => {
+  if (seconds < 0) seconds = 0
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = seconds % 60
+  if (h > 0) return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
 }
 
 const formatDuracion = (seconds) => {
@@ -73,8 +55,30 @@ const formatDuracion = (seconds) => {
   return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
 }
 
-/* ── Modal de selección de pausa ────────────────────────────────────────── */
-function ModalPausa({ tipos, onSelect, onClose, loading }) {
+// Hook countdown genérico: cuenta hacia atrás desde `initialSeconds`
+function useCountdown(initialSeconds, running) {
+  const [seconds, setSeconds] = useState(initialSeconds)
+  const intervalRef = useRef(null)
+
+  useEffect(() => {
+    setSeconds(initialSeconds)
+  }, [initialSeconds])
+
+  useEffect(() => {
+    if (running && seconds > 0) {
+      intervalRef.current = setInterval(() => {
+        setSeconds((s) => (s > 0 ? s - 1 : 0))
+      }, 1000)
+    } else {
+      clearInterval(intervalRef.current)
+    }
+    return () => clearInterval(intervalRef.current)
+  }, [running, seconds > 0])
+
+  return seconds
+}
+
+function ModalPausa({ tipos, pausasUsadas, onSelect, onClose, loading }) {
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -88,28 +92,33 @@ function ModalPausa({ tipos, onSelect, onClose, loading }) {
           Registra tus pausas para cumplir con la normativa operativa.
         </p>
         <div className={styles.modalList}>
-          {tipos.map((t) => (
-            <button
-              key={t.id}
-              className={styles.tipoPausaBtn}
-              onClick={() => onSelect(t.id)}
-              disabled={loading}
-            >
-              <span className={styles.tipoPausaIcon}><IconCoffee /></span>
-              <div className={styles.tipoPausaInfo}>
-                <span className={styles.tipoPausaLabel}>{t.label}</span>
-                <span className={styles.tipoPausaMax}>Máx. {t.duracion_max_min} min</span>
-              </div>
-              {loading && <Spinner size="sm" />}
-            </button>
-          ))}
+          {tipos.map((t) => {
+            const usada = pausasUsadas.includes(t.id)
+            return (
+              <button
+                key={t.id}
+                className={styles.tipoPausaBtn}
+                onClick={() => !usada && onSelect(t.id)}
+                disabled={loading || usada}
+                style={usada ? { opacity: 0.45, cursor: 'not-allowed' } : {}}
+              >
+                <span className={styles.tipoPausaIcon}><IconCoffee /></span>
+                <div className={styles.tipoPausaInfo}>
+                  <span className={styles.tipoPausaLabel}>
+                    {t.label} {usada ? '(ya usada)' : ''}
+                  </span>
+                  <span className={styles.tipoPausaMax}>Máx. {t.duracion_max_min} min</span>
+                </div>
+                {loading && <Spinner size="sm" />}
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>
   )
 }
 
-/* ── Componente fila de historial ────────────────────────────────────────── */
 function HistorialRow({ item }) {
   const isEntrada = item.tipo === 'entrada'
   return (
@@ -133,7 +142,6 @@ function HistorialRow({ item }) {
   )
 }
 
-/* ── Página principal ────────────────────────────────────────────────────── */
 export default function PausasPage() {
   const [asistencia, setAsistencia] = useState(null)
   const [tiposPausa, setTiposPausa] = useState([])
@@ -142,12 +150,49 @@ export default function PausasPage() {
   const [showModal,  setShowModal]  = useState(false)
   const [actionLoading, setActionLoading] = useState(false)
   const [successMsg, setSuccessMsg] = useState(null)
+  // segundos transcurridos desde que entró (para el countdown de jornada)
+  const [tiempoTranscurrido, setTiempoTranscurrido] = useState(0)
+  // pausa activa: { id, label, duracionMaxSeg, segundosRestantes }
+  const [pausaActiva, setPausaActiva] = useState(null)
+  // IDs de pausas ya usadas esta jornada
+  const [pausasUsadas, setPausasUsadas] = useState([])
+  // historial local construido manualmente
+  const [historial, setHistorial] = useState([])
 
-  const enPausa = asistencia?.en_pausa ?? false
-  const { formatted: tiempoActivo } = useTimer(
-    asistencia?.tiempo_activo_segundos ?? 0,
-    !enPausa && !!asistencia?.hora_entrada && !asistencia?.hora_salida
-  )
+  const enPausa = !!pausaActiva
+  const jornadaIniciada = !!asistencia?.hora_entrada
+  const jornadaFinalizada = !!asistencia?.hora_salida
+
+  // Tick del tiempo transcurrido de jornada (cuenta hacia arriba internamente,
+  // pero lo mostramos como JORNADA_TOTAL - transcurrido = tiempo restante)
+  const tiempoTranscurridoRef = useRef(null)
+  useEffect(() => {
+    if (jornadaIniciada && !jornadaFinalizada && !enPausa) {
+      tiempoTranscurridoRef.current = setInterval(() => {
+        setTiempoTranscurrido((s) => s + 1)
+      }, 1000)
+    } else {
+      clearInterval(tiempoTranscurridoRef.current)
+    }
+    return () => clearInterval(tiempoTranscurridoRef.current)
+  }, [jornadaIniciada, jornadaFinalizada, enPausa])
+
+  // Tick del countdown de pausa
+  const pausaRef = useRef(null)
+  useEffect(() => {
+    if (enPausa) {
+      pausaRef.current = setInterval(() => {
+        setPausaActiva((prev) => {
+          if (!prev) return prev
+          const next = prev.segundosRestantes - 1
+          return { ...prev, segundosRestantes: next < 0 ? 0 : next }
+        })
+      }, 1000)
+    } else {
+      clearInterval(pausaRef.current)
+    }
+    return () => clearInterval(pausaRef.current)
+  }, [enPausa])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -155,7 +200,15 @@ export default function PausasPage() {
       try {
         if (USE_MOCK) {
           await new Promise((r) => setTimeout(r, 500))
-          setAsistencia(MOCK_ASISTENCIA)
+          // Sin hora_entrada al inicio: jornada no iniciada
+          setAsistencia({
+            id_asistencia: null,
+            fecha: new Date().toISOString().split('T')[0],
+            hora_entrada: null,
+            hora_salida: null,
+            tiempo_en_pausa_segundos: 0,
+            productividad_pct: 0,
+          })
           setTiposPausa(MOCK_TIPOS_PAUSA)
         } else {
           const [asist, tipos] = await Promise.all([
@@ -174,15 +227,46 @@ export default function PausasPage() {
     fetchData()
   }, [])
 
-  const handleIniciarPausa = async (tipoPausaId) => {
+  const handleRegistrarEntrada = async () => {
     setActionLoading(true)
     try {
       if (!USE_MOCK) {
-        const updated = await iniciarPausa(tipoPausaId)
+        const updated = await registrarEntrada()
         setAsistencia(updated)
       } else {
-        setAsistencia((prev) => ({ ...prev, en_pausa: true }))
+        await new Promise((r) => setTimeout(r, 600))
+        setAsistencia((prev) => ({ ...prev, hora_entrada: new Date().toISOString() }))
       }
+      const horaLabel = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' })
+      setHistorial([{ tipo: 'entrada', label: 'Inicio de Jornada', hora_inicio: horaLabel, hora_fin: null, duracion_segundos: null }])
+      setTiempoTranscurrido(0)
+      setSuccessMsg('¡Entrada registrada correctamente!')
+      setTimeout(() => setSuccessMsg(null), 3000)
+    } catch (err) {
+      setError(err?.response?.data?.detail || 'Error al registrar entrada.')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleIniciarPausa = async (tipoPausaId) => {
+    setActionLoading(true)
+    try {
+      const tipo = tiposPausa.find((t) => t.id === tipoPausaId)
+      if (!USE_MOCK) {
+        await iniciarPausa(tipoPausaId)
+      } else {
+        await new Promise((r) => setTimeout(r, 300))
+      }
+      const horaLabel = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' })
+      setPausaActiva({
+        id: tipoPausaId,
+        label: tipo.label,
+        duracionMaxSeg: tipo.duracion_max_min * 60,
+        segundosRestantes: tipo.duracion_max_min * 60,
+        horaInicio: horaLabel,
+      })
+      setPausasUsadas((prev) => [...prev, tipoPausaId])
       setShowModal(false)
     } catch (err) {
       setError(err?.response?.data?.detail || 'Error al iniciar pausa.')
@@ -195,11 +279,23 @@ export default function PausasPage() {
     setActionLoading(true)
     try {
       if (!USE_MOCK) {
-        const updated = await finalizarPausa()
-        setAsistencia(updated)
+        await finalizarPausa()
       } else {
-        setAsistencia((prev) => ({ ...prev, en_pausa: false }))
+        await new Promise((r) => setTimeout(r, 300))
       }
+      const horaFin = new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' })
+      const duracionUsada = pausaActiva.duracionMaxSeg - pausaActiva.segundosRestantes
+      setHistorial((prev) => [
+        ...prev,
+        {
+          tipo: 'pausa',
+          label: pausaActiva.label,
+          hora_inicio: pausaActiva.horaInicio,
+          hora_fin: horaFin,
+          duracion_segundos: duracionUsada,
+        },
+      ])
+      setPausaActiva(null)
     } catch (err) {
       setError(err?.response?.data?.detail || 'Error al reanudar.')
     } finally {
@@ -225,6 +321,13 @@ export default function PausasPage() {
     }
   }
 
+  const getEstadoJornada = () => {
+    if (!jornadaIniciada)    return { label: 'Inactivo',           color: '#94a3b8' }
+    if (jornadaFinalizada)   return { label: 'Jornada finalizada', color: '#16a34a' }
+    if (enPausa)             return { label: pausaActiva.label,    color: '#d97706' }
+    return                          { label: 'Activo',             color: '#16a34a' }
+  }
+
   if (loading) {
     return (
       <div className={styles.center}>
@@ -242,7 +345,10 @@ export default function PausasPage() {
     )
   }
 
-  const jornadaFinalizada = !!asistencia?.hora_salida
+  const estadoJornada = getEstadoJornada()
+  // Tiempo restante de jornada (8h - transcurrido)
+  const segundosRestantesJornada = Math.max(0, JORNADA_TOTAL_SEGUNDOS - tiempoTranscurrido)
+  const jornadaDisplay = formatCountdown(segundosRestantesJornada)
 
   return (
     <div className={styles.page}>
@@ -256,29 +362,66 @@ export default function PausasPage() {
             : ''}
         </p>
 
-        <div className={`${styles.clockRing} ${enPausa ? styles.clockRingPaused : ''}`}>
-          <span className={styles.clockIcon}><IconClock /></span>
-          <span className={`${styles.clockTime} ${enPausa ? styles.clockTimePaused : ''}`}>
-            {tiempoActivo}
-          </span>
-          <span className={styles.clockLabel}>TIEMPO ACTIVO</span>
-        </div>
+        <span
+          className={styles.estadoBadge}
+          style={{
+            background: estadoJornada.color + '20',
+            color: estadoJornada.color,
+            border: `1px solid ${estadoJornada.color}40`,
+          }}
+        >
+          <span className={styles.estadoDot} style={{ background: estadoJornada.color }} />
+          {estadoJornada.label}
+        </span>
 
-        <p className={styles.normativaText}>
-          Registra tus pausas obligatorias para cumplir con la normativa operativa.
-        </p>
+        {!jornadaIniciada ? (
+          <div className={styles.entradaWrap}>
+            <p className={styles.normativaText}>
+              Registra tu entrada para iniciar la jornada laboral.
+            </p>
+            <button
+              className={styles.entradaBtn}
+              onClick={handleRegistrarEntrada}
+              disabled={actionLoading}
+            >
+              {actionLoading ? <Spinner size="sm" color="white" /> : <IconLogin />}
+              <span>Registrar Entrada</span>
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Reloj principal: countdown jornada o countdown pausa */}
+            <div className={`${styles.clockRing} ${enPausa ? styles.clockRingPaused : ''}`}>
+              <span className={styles.clockIcon}><IconClock /></span>
+              <span className={`${styles.clockTime} ${enPausa ? styles.clockTimePaused : ''}`}>
+                {enPausa
+                  ? formatCountdown(pausaActiva.segundosRestantes)
+                  : jornadaDisplay}
+              </span>
+              <span className={styles.clockLabel}>
+                {enPausa ? 'TIEMPO DE PAUSA' : 'TIEMPO RESTANTE'}
+              </span>
+            </div>
 
-        {!jornadaFinalizada && (
-          <button
-            className={`${styles.pauseBtn} ${enPausa ? styles.pauseBtnActive : ''}`}
-            onClick={enPausa ? handleReanudar : () => setShowModal(true)}
-            disabled={actionLoading}
-          >
-            {actionLoading
-              ? <Spinner size="sm" color="white" />
-              : enPausa ? <IconPlay /> : <IconPause />}
-            <span>{enPausa ? 'REANUDAR' : 'PAUSAR'}</span>
-          </button>
+            <p className={styles.normativaText}>
+              {enPausa
+                ? `Pausa en curso: ${pausaActiva.label}`
+                : 'Registra tus pausas obligatorias para cumplir con la normativa operativa.'}
+            </p>
+
+            {!jornadaFinalizada && (
+              <button
+                className={`${styles.pauseBtn} ${enPausa ? styles.pauseBtnActive : ''}`}
+                onClick={enPausa ? handleReanudar : () => setShowModal(true)}
+                disabled={actionLoading}
+              >
+                {actionLoading
+                  ? <Spinner size="sm" color="white" />
+                  : enPausa ? <IconPlay /> : <IconPause />}
+                <span>{enPausa ? 'REANUDAR' : 'PAUSAR'}</span>
+              </button>
+            )}
+          </>
         )}
       </section>
 
@@ -313,9 +456,10 @@ export default function PausasPage() {
         </div>
 
         <div className={styles.historialList}>
-          {asistencia?.historial?.map((item, i) => (
-            <HistorialRow key={i} item={item} />
-          ))}
+          {historial.length > 0
+            ? historial.map((item, i) => <HistorialRow key={i} item={item} />)
+            : <p className={styles.historialVacio}>Sin registros por el momento.</p>
+          }
         </div>
       </section>
 
@@ -330,23 +474,23 @@ export default function PausasPage() {
         <div className={styles.errorBanner}>{error}</div>
       )}
 
-      {!jornadaFinalizada ? (
+      {jornadaIniciada && !jornadaFinalizada && (
         <div className={styles.finalizarWrap}>
           <button
             className={styles.finalizarBtn}
             onClick={handleFinalizarJornada}
             disabled={actionLoading || enPausa}
           >
-            {actionLoading
-              ? <Spinner size="sm" color="white" />
-              : <IconCheck />}
+            {actionLoading ? <Spinner size="sm" color="white" /> : <IconCheck />}
             <span>Guardar y Finalizar Jornada</span>
           </button>
           <p className={styles.finalizarNote}>
             Al finalizar, tu ubicación y estado se actualizarán en el panel de supervisión.
           </p>
         </div>
-      ) : (
+      )}
+
+      {jornadaFinalizada && (
         <div className={styles.jornadaFinalizada}>
           <IconCheck />
           <span>Jornada finalizada</span>
@@ -356,6 +500,7 @@ export default function PausasPage() {
       {showModal && (
         <ModalPausa
           tipos={tiposPausa}
+          pausasUsadas={pausasUsadas}
           onSelect={handleIniciarPausa}
           onClose={() => setShowModal(false)}
           loading={actionLoading}
