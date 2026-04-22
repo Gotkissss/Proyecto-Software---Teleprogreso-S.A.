@@ -1,14 +1,3 @@
-/**
- * pages/RutaDiariaPage.jsx
- * ---------------------------------------------------------------------------
- * Pantalla "Mi Ruta Diaria" — muestra el cronograma de servicios del día.
- *
- * Datos: se obtienen de rutaService.getMiRuta()
- * Mientras el backend no tenga /servicios/mi-ruta, se usan datos MOCK.
- * Para activar el backend real: cambiar USE_MOCK a false.
- * ---------------------------------------------------------------------------
- */
-
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { getMiRuta } from '../api/rutaService'
@@ -16,10 +5,8 @@ import Badge from '../components/ui/Badge'
 import Spinner from '../components/ui/Spinner'
 import styles from './RutaDiariaPage.module.css'
 
-/* ─── Cambiar a false cuando el backend tenga /servicios/mi-ruta ───────── */
 const USE_MOCK = true
 
-/* ── Iconos ──────────────────────────────────────────────────────────────── */
 const IconPin      = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
 const IconClock    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
 const IconRoute    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -27,48 +14,188 @@ const IconNav      = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentC
 const IconChevron  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
 const IconCalendar = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
 const IconAlert    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+const IconPlay     = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+const IconCheck    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+const IconX        = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
 
-/* ── MOCK DATA ────────────────────────────────────────────────────────────── */
 const MOCK_RUTA = {
   fecha: new Date().toISOString().split('T')[0],
   tecnico: { nombre_completo: 'Juan Pérez', cargo: 'Técnico de Campo' },
-  resumen: { total_paradas: 6, duracion_estimada_h: 6.5, km_ruta: 42 },
   alerta: { mensaje: 'Tienes 1 servicio urgente pendiente en tu ruta.' },
   servicios: [
-    { id_servicio: 1, eta: '08:30', estado: 'completado',  prioridad: 'media',   nombre: 'Residencial Los Álamos - Bloque B', direccion: 'Calle 15, Ave. Circunvalación', tipo: 'Instalación' },
-    { id_servicio: 2, eta: '09:45', estado: 'en_progreso', prioridad: 'urgente', nombre: 'Tienda El Ahorro',                   direccion: 'Barrio El Centro, 3 Calle',     tipo: 'Reparación' },
-    { id_servicio: 3, eta: '11:15', estado: 'pendiente',   prioridad: 'media',   nombre: 'Carlos Mendoza',                    direccion: 'Col. Universidad, Casa 4',    tipo: 'Mantenimiento' },
-    { id_servicio: 4, eta: '13:00', estado: 'pendiente',   prioridad: 'media',   nombre: 'Restaurante Sabor Latino',          direccion: 'Bo. Guamilito, 5 Ave 4 Calle',   tipo: 'Reparación' },
-    { id_servicio: 5, eta: '14:30', estado: 'pendiente',   prioridad: 'alta',    nombre: 'María Josefa Rodríguez',            direccion: 'Res. El Portal, Senda 3',       tipo: 'Mantenimiento' },
-    { id_servicio: 6, eta: '15:45', estado: 'pendiente',   prioridad: 'media',   nombre: 'Supermercado La Antorcha',          direccion: 'Salida a La Lima, KM 18.5',        tipo: 'Instalación' },
+    {
+      id_servicio: 1,
+      estado: 'pendiente',
+      prioridad: 'urgente',
+      nombre: 'Tienda El Ahorro',
+      direccion: 'Barrio El Centro, 3 Calle',
+      tipo: 'Reparación',
+      km: 8,
+    },
+    {
+      id_servicio: 2,
+      estado: 'pendiente',
+      prioridad: 'media',
+      nombre: 'Residencial Los Álamos - Bloque B',
+      direccion: 'Calle 15, Ave. Circunvalación',
+      tipo: 'Instalación',
+      km: 5,
+    },
+    {
+      id_servicio: 3,
+      estado: 'pendiente',
+      prioridad: 'media',
+      nombre: 'Carlos Mendoza',
+      direccion: 'Col. Universidad, Casa 4',
+      tipo: 'Mantenimiento',
+      km: 7,
+    },
+    {
+      id_servicio: 4,
+      estado: 'pendiente',
+      prioridad: 'alta',
+      nombre: 'María Josefa Rodríguez',
+      direccion: 'Res. El Portal, Senda 3',
+      tipo: 'Mantenimiento',
+      km: 6,
+    },
+    {
+      id_servicio: 5,
+      estado: 'pendiente',
+      prioridad: 'media',
+      nombre: 'Restaurante Sabor Latino',
+      direccion: 'Bo. Guamilito, 5 Ave 4 Calle',
+      tipo: 'Reparación',
+      km: 9,
+    },
   ],
 }
 
-/* ── Helpers ─────────────────────────────────────────────────────────────── */
 const ESTADO_LABEL = {
   completado:  'Completado',
-  en_progreso: 'En Ruta',
+  en_progreso: 'En Curso',
   pendiente:   'Pendiente',
   cancelado:   'Cancelado',
 }
 
-/* ── Componente tarjeta de servicio ──────────────────────────────────────── */
+// Panel de detalle / modal de tarea
+function DetallePanel({ servicio, onClose, onIniciar, onTerminar }) {
+  const isInProgress = servicio.estado === 'en_progreso'
+  const isCompleted  = servicio.estado === 'completado'
+
+  const estadoColor = isCompleted
+    ? '#16a34a'
+    : isInProgress
+    ? '#1a56db'
+    : servicio.prioridad === 'urgente'
+    ? '#dc2626'
+    : '#64748b'
+
+  const estadoLabel = ESTADO_LABEL[servicio.estado] ?? servicio.estado
+
+  return (
+    <div className={styles.panelOverlay} onClick={onClose}>
+      <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.panelHeader}>
+          <h2 className={styles.panelTitle}>{servicio.nombre}</h2>
+          <button className={styles.panelClose} onClick={onClose} aria-label="Cerrar">
+            <IconX />
+          </button>
+        </div>
+
+        <div className={styles.panelBody}>
+          {/* Estado actual */}
+          <div className={styles.panelEstadoRow}>
+            <span className={styles.panelEstadoLabel}>Estado de la tarea</span>
+            <span
+              className={styles.panelEstadoBadge}
+              style={{
+                background: estadoColor + '18',
+                color: estadoColor,
+                border: `1px solid ${estadoColor}40`,
+              }}
+            >
+              <span
+                className={styles.panelEstadoDot}
+                style={{ background: estadoColor }}
+              />
+              {estadoLabel}
+            </span>
+          </div>
+
+          {/* Detalles */}
+          <div className={styles.panelDetails}>
+            <div className={styles.panelDetailRow}>
+              <span className={styles.panelDetailKey}>Dirección</span>
+              <span className={styles.panelDetailVal}>{servicio.direccion}</span>
+            </div>
+            <div className={styles.panelDetailRow}>
+              <span className={styles.panelDetailKey}>Tipo</span>
+              <span className={styles.panelDetailVal}>{servicio.tipo}</span>
+            </div>
+            <div className={styles.panelDetailRow}>
+              <span className={styles.panelDetailKey}>Prioridad</span>
+              <span className={styles.panelDetailVal} style={{ textTransform: 'capitalize' }}>
+                {servicio.prioridad}
+              </span>
+            </div>
+            <div className={styles.panelDetailRow}>
+              <span className={styles.panelDetailKey}>Distancia aprox.</span>
+              <span className={styles.panelDetailVal}>{servicio.km} km</span>
+            </div>
+          </div>
+
+          {/* Acciones */}
+          {!isCompleted && (
+            <div className={styles.panelActions}>
+              {!isInProgress ? (
+                <button
+                  className={styles.iniciarBtn}
+                  onClick={() => onIniciar(servicio.id_servicio)}
+                >
+                  <IconPlay />
+                  <span>Iniciar Tarea</span>
+                </button>
+              ) : (
+                <button
+                  className={styles.terminarBtn}
+                  onClick={() => onTerminar(servicio.id_servicio)}
+                >
+                  <IconCheck />
+                  <span>Terminar Tarea</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {isCompleted && (
+            <div className={styles.panelCompletado}>
+              <IconCheck />
+              <span>Tarea completada</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ServicioCard({ servicio, onVerDetalle }) {
   const isActive    = servicio.estado === 'en_progreso'
   const isCompleted = servicio.estado === 'completado'
 
   return (
     <article
-      className={`${styles.card} ${isActive ? styles.cardActive : ''} ${isCompleted ? styles.cardCompleted : ''}`}
+      className={`
+        ${styles.card}
+        ${isActive    ? styles.cardActive    : ''}
+        ${isCompleted ? styles.cardCompleted : ''}
+        ${servicio.prioridad === 'urgente' && !isCompleted ? styles.cardUrgente : ''}
+      `}
     >
       <div className={styles.cardMain}>
-        <div className={styles.etaCol}>
-          <span className={styles.etaLabel}>ETA</span>
-          <span className={styles.etaTime}>{servicio.eta}</span>
-        </div>
-
         <div className={styles.timeline}>
-          <div className={`${styles.dot} ${styles[`dot_${servicio.estado}`]}`} />
+          <div className={`${styles.dot} ${styles[`dot_${servicio.estado}`]} ${servicio.prioridad === 'urgente' && servicio.estado === 'pendiente' ? styles.dot_urgente : ''}`} />
           <div className={styles.line} />
         </div>
 
@@ -77,6 +204,9 @@ function ServicioCard({ servicio, onVerDetalle }) {
             <Badge label={ESTADO_LABEL[servicio.estado] ?? servicio.estado} variant={servicio.estado} />
             {servicio.prioridad === 'urgente' && (
               <Badge label="Urgente" variant="urgente" />
+            )}
+            {servicio.prioridad === 'alta' && servicio.estado !== 'completado' && (
+              <Badge label="Alta" variant="alta" />
             )}
           </div>
           <h3 className={styles.nombre}>{servicio.nombre}</h3>
@@ -102,19 +232,26 @@ function ServicioCard({ servicio, onVerDetalle }) {
           onClick={() => onVerDetalle(servicio)}
         >
           <IconNav />
-          <span>Ver detalles de la orden</span>
+          <span>
+            {isActive ? 'Tarea en curso — Ver detalles' : 'Ver detalles de la orden'}
+          </span>
         </button>
       )}
     </article>
   )
 }
 
-/* ── Página principal ────────────────────────────────────────────────────── */
 export default function RutaDiariaPage() {
   const { user } = useAuth()
-  const [ruta,    setRuta]    = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState(null)
+  const [ruta,           setRuta]           = useState(null)
+  const [servicios,      setServicios]      = useState([])
+  const [loading,        setLoading]        = useState(true)
+  const [error,          setError]          = useState(null)
+  const [detalleAbierto, setDetalleAbierto] = useState(null)
+
+  // Contadores acumulados
+  const [paradasCompletadas, setParadasCompletadas] = useState(0)
+  const [kmAcumulados,       setKmAcumulados]       = useState(0)
 
   useEffect(() => {
     const fetchRuta = async () => {
@@ -123,9 +260,12 @@ export default function RutaDiariaPage() {
         if (USE_MOCK) {
           await new Promise((r) => setTimeout(r, 600))
           setRuta(MOCK_RUTA)
+          // Ordena: urgentes primero, luego por prioridad, completadas al final
+          setServicios(ordenarServicios(MOCK_RUTA.servicios))
         } else {
           const data = await getMiRuta()
           setRuta(data)
+          setServicios(ordenarServicios(data.servicios))
         }
       } catch (err) {
         setError(err?.response?.data?.detail || 'No se pudo cargar la ruta.')
@@ -136,9 +276,54 @@ export default function RutaDiariaPage() {
     fetchRuta()
   }, [])
 
-  const handleVerDetalle = (servicio) => {
-    console.log('Ver detalle servicio:', servicio.id_servicio)
+  const ordenarServicios = (lista) => {
+    const prioridadOrden = { urgente: 0, alta: 1, media: 2, baja: 3 }
+    const pendientes = lista
+      .filter((s) => s.estado !== 'completado')
+      .sort((a, b) => (prioridadOrden[a.prioridad] ?? 99) - (prioridadOrden[b.prioridad] ?? 99))
+    const completadas = lista.filter((s) => s.estado === 'completado')
+    return [...pendientes, ...completadas]
   }
+
+  const handleIniciar = (idServicio) => {
+    setServicios((prev) =>
+      prev.map((s) =>
+        s.id_servicio === idServicio ? { ...s, estado: 'en_progreso' } : s
+      )
+    )
+    // Actualiza el panel abierto también
+    setDetalleAbierto((prev) =>
+      prev && prev.id_servicio === idServicio ? { ...prev, estado: 'en_progreso' } : prev
+    )
+  }
+
+  const handleTerminar = (idServicio) => {
+    const servicio = servicios.find((s) => s.id_servicio === idServicio)
+    if (!servicio) return
+
+    setParadasCompletadas((prev) => prev + 1)
+    setKmAcumulados((prev) => prev + (servicio.km ?? 0))
+
+    setServicios((prev) => {
+      const actualizada = prev.map((s) =>
+        s.id_servicio === idServicio ? { ...s, estado: 'completado' } : s
+      )
+      return ordenarServicios(actualizada)
+    })
+
+    setDetalleAbierto(null)
+  }
+
+  const handleVerDetalle = (servicio) => {
+    // Siempre toma el estado más reciente del array
+    const actual = servicios.find((s) => s.id_servicio === servicio.id_servicio) ?? servicio
+    setDetalleAbierto(actual)
+  }
+
+  // Sincroniza el panel si el estado cambió externamente
+  const servicioEnPanel = detalleAbierto
+    ? servicios.find((s) => s.id_servicio === detalleAbierto.id_servicio) ?? detalleAbierto
+    : null
 
   if (loading) {
     return (
@@ -157,9 +342,9 @@ export default function RutaDiariaPage() {
     )
   }
 
-  // user.nombre comes from /auth/me as "Nombre Apellido"
-  const nombre = ruta?.tecnico?.nombre_completo ?? user?.nombre ?? 'Técnico'
+  const nombre      = ruta?.tecnico?.nombre_completo ?? user?.nombre ?? 'Técnico'
   const primerNombre = nombre.split(' ')[0]
+  const totalServicios = servicios.length
 
   return (
     <div className={styles.page}>
@@ -168,30 +353,29 @@ export default function RutaDiariaPage() {
           <span className={styles.dateLabel}>
             <IconCalendar />
             HOY, {ruta?.fecha
-              ? new Date(ruta.fecha + 'T12:00:00').toLocaleDateString('es-GT', { day: 'numeric', month: 'long' }).toUpperCase()
+              ? new Date(ruta.fecha + 'T12:00:00').toLocaleDateString('es-GT', {
+                  day: 'numeric', month: 'long',
+                }).toUpperCase()
               : ''}
           </span>
         </div>
         <h2 className={styles.greeting}>Hola, {primerNombre}</h2>
       </header>
 
+      {/* Contadores */}
       <section className={styles.resumen}>
         <div className={styles.resumenItem}>
           <span className={styles.resumenIcon}><IconPin /></span>
-          <span className={styles.resumenValue}>{ruta?.resumen?.total_paradas ?? '-'}</span>
+          <span className={styles.resumenValue}>
+            {paradasCompletadas}/{totalServicios}
+          </span>
           <span className={styles.resumenLabel}>PARADAS</span>
         </div>
         <div className={styles.resumenDivider} />
         <div className={styles.resumenItem}>
-          <span className={styles.resumenIcon}><IconClock /></span>
-          <span className={styles.resumenValue}>{ruta?.resumen?.duracion_estimada_h ?? '-'}h</span>
-          <span className={styles.resumenLabel}>EST.</span>
-        </div>
-        <div className={styles.resumenDivider} />
-        <div className={styles.resumenItem}>
           <span className={styles.resumenIcon}><IconRoute /></span>
-          <span className={styles.resumenValue}>{ruta?.resumen?.km_ruta ?? '-'}km</span>
-          <span className={styles.resumenLabel}>RUTA</span>
+          <span className={styles.resumenValue}>{kmAcumulados} km</span>
+          <span className={styles.resumenLabel}>RECORRIDOS</span>
         </div>
       </section>
 
@@ -206,13 +390,15 @@ export default function RutaDiariaPage() {
         <div className={styles.listHeader}>
           <h3 className={styles.listTitle}>Cronograma del Día</h3>
           <span className={styles.listUpdated}>
-            Actualizado: {new Date().toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' })}
+            Actualizado: {new Date().toLocaleTimeString('es-GT', {
+              hour: '2-digit', minute: '2-digit',
+            })}
           </span>
         </div>
 
-        {ruta?.servicios?.length > 0 ? (
+        {servicios.length > 0 ? (
           <div className={styles.list}>
-            {ruta.servicios.map((s) => (
+            {servicios.map((s) => (
               <ServicioCard
                 key={s.id_servicio}
                 servicio={s}
@@ -226,6 +412,16 @@ export default function RutaDiariaPage() {
 
         <p className={styles.listEnd}>No hay más paradas programadas</p>
       </section>
+
+      {/* Panel de detalle */}
+      {servicioEnPanel && (
+        <DetallePanel
+          servicio={servicioEnPanel}
+          onClose={() => setDetalleAbierto(null)}
+          onIniciar={handleIniciar}
+          onTerminar={handleTerminar}
+        />
+      )}
     </div>
   )
 }
