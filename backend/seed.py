@@ -1,18 +1,7 @@
 """
 seed.py — Datos iniciales para Teleprogreso S.A.
-=================================================
-Este script es IDEMPOTENTE y se encarga de todo:
-  1. Verifica que PostGIS esté habilitado (y lo habilita si no lo está)
-  2. Ejecuta las migraciones de Alembic si las tablas no existen
-  3. Limpia TODAS las tablas con TRUNCATE CASCADE (respeta FKs)
-  4. Inserta empleados y tareas de prueba
-
-Uso (un solo comando):
-    docker compose exec backend python seed.py
 """
-
 import asyncio
-import subprocess
 import sys
 from datetime import date, timedelta
 
@@ -24,14 +13,14 @@ from app.core.security import hash_password
 from app.models.empleado import Empleado, EmpleadoTarea
 from app.models.tarea import Tarea
 
-# ── Motor de base de datos ─────────────────────────────────────────────────
+# Motor de base de datos
 engine = create_async_engine(settings.DATABASE_URL, echo=False, future=True)
 AsyncSessionLocal = async_sessionmaker(
     bind=engine, class_=AsyncSession, expire_on_commit=False
 )
 
 
-# ── Datos de prueba ────────────────────────────────────────────────────────
+# Datos de prueba
 EMPLEADOS = [
     {
         "nombre": "Carlos",
@@ -121,26 +110,6 @@ TAREAS = [
 ]
 
 
-# ── Tablas a limpiar (orden inverso de dependencias) ──────────────────────
-# TRUNCATE ... CASCADE respeta las FKs automáticamente, pero listarlas
-# en orden es buena práctica por si algún día se quita el CASCADE.
-TABLAS_A_LIMPIAR = [
-    "ubicacion_empleado",
-    "incidencia",
-    "descanso",
-    "asistencia",
-    "carro_herramienta",
-    "empleado_carro",
-    "empleado_tarea",
-    "tarea",
-    "herramienta",
-    "material",
-    "carro",
-    "activo",
-    "empleado",
-]
-
-
 async def verificar_postgis(db: AsyncSession) -> None:
     """Verifica que PostGIS esté habilitado; si no, lo habilita."""
     result = await db.execute(
@@ -157,41 +126,18 @@ async def verificar_postgis(db: AsyncSession) -> None:
         print("✅ PostGIS ya está habilitado")
 
 
-async def verificar_tablas(db: AsyncSession) -> bool:
-    """Verifica si las tablas principales existen."""
-    result = await db.execute(
-        text(
-            "SELECT EXISTS("
-            "  SELECT 1 FROM information_schema.tables "
-            "  WHERE table_schema = 'public' AND table_name = 'empleado'"
-            ")"
-        )
-    )
-    return bool(result.scalar())
-
-
-def ejecutar_migraciones() -> None:
-    """Ejecuta `alembic upgrade head` desde Python."""
-    print("📦 Ejecutando migraciones de Alembic...")
-    resultado = subprocess.run(
-        ["alembic", "upgrade", "head"],
-        capture_output=True,
-        text=True,
-    )
-    if resultado.returncode != 0:
-        print("   ❌ Error al ejecutar migraciones:")
-        print(resultado.stderr)
-        sys.exit(1)
-    print("   ✅ Migraciones aplicadas")
-
-
-async def limpiar_tablas(db: AsyncSession) -> None:
-    """Limpia todas las tablas usando TRUNCATE ... RESTART IDENTITY CASCADE."""
-    print("🗑️  Limpiando datos anteriores...")
-    tablas = ", ".join(TABLAS_A_LIMPIAR)
-    await db.execute(text(f"TRUNCATE {tablas} RESTART IDENTITY CASCADE"))
-    await db.commit()
-    print("   ✅ Tablas limpias")
+async def bd_ya_tiene_datos(db: AsyncSession) -> bool:
+    """
+    Retorna True si ya existen empleados en la base de datos.
+    Se usa para evitar resembrar y perder datos de desarrollo.
+    """
+    try:
+        result = await db.execute(text("SELECT COUNT(*) FROM empleado"))
+        count = result.scalar() or 0
+        return count > 0
+    except Exception:
+        # Si la tabla no existe aún, consideramos que no hay datos
+        return False
 
 
 async def crear_empleados(db: AsyncSession) -> list[Empleado]:
@@ -274,20 +220,24 @@ def imprimir_resumen(empleados: list[Empleado]) -> None:
 
 
 async def seed() -> None:
-    # 1. Verificar PostGIS antes de cualquier migración
+    # 1. Verificar PostGIS
     async with AsyncSessionLocal() as db:
         await verificar_postgis(db)
-        tablas_existen = await verificar_tablas(db)
 
-    # 2. Correr migraciones si las tablas no existen
-    if not tablas_existen:
-        ejecutar_migraciones()
-    else:
-        print("✅ Tablas ya existen, omitiendo migraciones")
-
-    # 3. Limpiar e insertar datos
+    # 2. Verificar si ya hay datos — si sí, salir sin hacer nada
     async with AsyncSessionLocal() as db:
-        await limpiar_tablas(db)
+        if await bd_ya_tiene_datos(db):
+            result = await db.execute(text("SELECT COUNT(*) FROM empleado"))
+            count = result.scalar()
+            print(f"✅ La base de datos ya tiene {count} empleados.")
+            print("   Omitiendo seed para respetar datos existentes.")
+            print("   (Para resembrar desde cero: docker compose down -v && docker compose up)")
+            await engine.dispose()
+            return
+
+    # 3. BD vacía → insertar datos de prueba
+    print("\n🌱 Base de datos vacía. Insertando datos iniciales...")
+    async with AsyncSessionLocal() as db:
         empleados = await crear_empleados(db)
         tareas = await crear_tareas(db)
         tecnico = empleados[1]  # Juan Pérez
