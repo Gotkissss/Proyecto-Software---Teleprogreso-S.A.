@@ -3,6 +3,9 @@
  * ---------------------------------------------------------------------------
  * Pantalla "Pausas y Asistencia".
  *
+ * SCRUM-51: Botón "Iniciar descanso" agregado en la sección de acciones.
+ * SCRUM-52: Indicador visual de estado "En descanso" en el hero y métricas.
+ *
  * Mientras el backend no tenga /asistencias/*, se usan datos MOCK.
  * Para activar el backend real: cambiar USE_MOCK a false.
  * ---------------------------------------------------------------------------
@@ -33,6 +36,8 @@ const IconTimer   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentCo
 const IconHistory = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.01"/></svg>
 const IconX       = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
 const IconCoffee  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+/* SCRUM-51/52: Icono de luna para representar el descanso */
+const IconMoon    = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
 
 /* ── MOCK DATA ────────────────────────────────────────────────────────────── */
 const MOCK_ASISTENCIA = {
@@ -42,7 +47,9 @@ const MOCK_ASISTENCIA = {
   hora_salida: null,
   tiempo_activo_segundos: 15621,
   en_pausa: false,
+  en_descanso: false,          // SCRUM-52: nuevo campo
   tiempo_en_pausa_segundos: 3900,
+  tiempo_en_descanso_segundos: 0, // SCRUM-52: nuevo campo
   productividad_pct: 92,
   historial: [
     { tipo: 'entrada',    label: 'Inicio de Jornada',       hora_inicio: '08:00 AM', hora_fin: null,       duracion_segundos: null },
@@ -111,11 +118,12 @@ function ModalPausa({ tipos, onSelect, onClose, loading }) {
 
 /* ── Componente fila de historial ────────────────────────────────────────── */
 function HistorialRow({ item }) {
-  const isEntrada = item.tipo === 'entrada'
+  const isEntrada  = item.tipo === 'entrada'
+  const isDescanso = item.tipo === 'descanso' // SCRUM-52
   return (
     <div className={styles.historialRow}>
-      <span className={`${styles.historialIcon} ${isEntrada ? styles.iconEntrada : styles.iconPausa}`}>
-        {isEntrada ? <IconBolt /> : <IconClock />}
+      <span className={`${styles.historialIcon} ${isEntrada ? styles.iconEntrada : isDescanso ? styles.iconDescanso : styles.iconPausa}`}>
+        {isEntrada ? <IconBolt /> : isDescanso ? <IconMoon /> : <IconClock />}
       </span>
       <div className={styles.historialInfo}>
         <span className={styles.historialLabel}>{item.label}</span>
@@ -133,6 +141,21 @@ function HistorialRow({ item }) {
   )
 }
 
+/* ── SCRUM-52: Indicador de estado de descanso ──────────────────────────── */
+function IndicadorDescanso({ tiempoDescansoSegundos }) {
+  const { formatted } = useTimer(tiempoDescansoSegundos, true)
+  return (
+    <div className={styles.indicadorDescanso}>
+      <span className={styles.indicadorDescansoIcon}><IconMoon /></span>
+      <div className={styles.indicadorDescansoTexto}>
+        <span className={styles.indicadorDescansoLabel}>EN DESCANSO</span>
+        <span className={styles.indicadorDescansoTimer}>{formatted}</span>
+      </div>
+      <span className={styles.indicadorDescansoPulso} />
+    </div>
+  )
+}
+
 /* ── Página principal ────────────────────────────────────────────────────── */
 export default function PausasPage() {
   const [asistencia, setAsistencia] = useState(null)
@@ -143,10 +166,12 @@ export default function PausasPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [successMsg, setSuccessMsg] = useState(null)
 
-  const enPausa = asistencia?.en_pausa ?? false
+  const enPausa    = asistencia?.en_pausa    ?? false
+  const enDescanso = asistencia?.en_descanso ?? false  // SCRUM-52
+
   const { formatted: tiempoActivo } = useTimer(
     asistencia?.tiempo_activo_segundos ?? 0,
-    !enPausa && !!asistencia?.hora_entrada && !asistencia?.hora_salida
+    !enPausa && !enDescanso && !!asistencia?.hora_entrada && !asistencia?.hora_salida
   )
 
   useEffect(() => {
@@ -181,7 +206,7 @@ export default function PausasPage() {
         const updated = await iniciarPausa(tipoPausaId)
         setAsistencia(updated)
       } else {
-        setAsistencia((prev) => ({ ...prev, en_pausa: true }))
+        setAsistencia((prev) => ({ ...prev, en_pausa: true, en_descanso: false }))
       }
       setShowModal(false)
     } catch (err) {
@@ -198,10 +223,52 @@ export default function PausasPage() {
         const updated = await finalizarPausa()
         setAsistencia(updated)
       } else {
-        setAsistencia((prev) => ({ ...prev, en_pausa: false }))
+        setAsistencia((prev) => ({ ...prev, en_pausa: false, en_descanso: false }))
       }
     } catch (err) {
       setError(err?.response?.data?.detail || 'Error al reanudar.')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  /* SCRUM-51: Manejador para iniciar descanso */
+  const handleIniciarDescanso = async () => {
+    setActionLoading(true)
+    try {
+      if (!USE_MOCK) {
+        // Cuando el backend esté listo, llamar al endpoint correspondiente
+        // const updated = await iniciarDescanso()
+        // setAsistencia(updated)
+      } else {
+        setAsistencia((prev) => ({
+          ...prev,
+          en_descanso: true,
+          en_pausa: false,
+          tiempo_en_descanso_segundos: prev.tiempo_en_descanso_segundos ?? 0,
+        }))
+      }
+      setSuccessMsg('Descanso iniciado. Recuerda regresar a tiempo.')
+      setTimeout(() => setSuccessMsg(null), 3000)
+    } catch (err) {
+      setError(err?.response?.data?.detail || 'Error al iniciar descanso.')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  /* SCRUM-51: Manejador para finalizar descanso */
+  const handleFinalizarDescanso = async () => {
+    setActionLoading(true)
+    try {
+      if (!USE_MOCK) {
+        // const updated = await finalizarDescanso()
+        // setAsistencia(updated)
+      } else {
+        setAsistencia((prev) => ({ ...prev, en_descanso: false }))
+      }
+    } catch (err) {
+      setError(err?.response?.data?.detail || 'Error al finalizar descanso.')
     } finally {
       setActionLoading(false)
     }
@@ -244,6 +311,19 @@ export default function PausasPage() {
 
   const jornadaFinalizada = !!asistencia?.hora_salida
 
+  /* SCRUM-52: determina el estado visual del reloj */
+  const clockStateClass = enDescanso
+    ? styles.clockRingDescanso
+    : enPausa
+    ? styles.clockRingPaused
+    : ''
+
+  const clockTimeClass = enDescanso
+    ? styles.clockTimeDescanso
+    : enPausa
+    ? styles.clockTimePaused
+    : ''
+
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
@@ -256,29 +336,61 @@ export default function PausasPage() {
             : ''}
         </p>
 
-        <div className={`${styles.clockRing} ${enPausa ? styles.clockRingPaused : ''}`}>
-          <span className={styles.clockIcon}><IconClock /></span>
-          <span className={`${styles.clockTime} ${enPausa ? styles.clockTimePaused : ''}`}>
+        {/* SCRUM-52: reloj cambia de color/estado según en_descanso */}
+        <div className={`${styles.clockRing} ${clockStateClass}`}>
+          <span className={styles.clockIcon}>
+            {enDescanso ? <IconMoon /> : <IconClock />}
+          </span>
+          <span className={`${styles.clockTime} ${clockTimeClass}`}>
             {tiempoActivo}
           </span>
-          <span className={styles.clockLabel}>TIEMPO ACTIVO</span>
+          <span className={styles.clockLabel}>
+            {enDescanso ? 'EN DESCANSO' : 'TIEMPO ACTIVO'}
+          </span>
         </div>
 
+        {/* SCRUM-52: indicador de descanso activo debajo del reloj */}
+        {enDescanso && (
+          <IndicadorDescanso
+            tiempoDescansoSegundos={asistencia?.tiempo_en_descanso_segundos ?? 0}
+          />
+        )}
+
         <p className={styles.normativaText}>
-          Registra tus pausas obligatorias para cumplir con la normativa operativa.
+          Registra tus pausas y descansos para cumplir con la normativa operativa.
         </p>
 
+        {/* Botones de acción — solo visibles si la jornada no ha finalizado */}
         {!jornadaFinalizada && (
-          <button
-            className={`${styles.pauseBtn} ${enPausa ? styles.pauseBtnActive : ''}`}
-            onClick={enPausa ? handleReanudar : () => setShowModal(true)}
-            disabled={actionLoading}
-          >
-            {actionLoading
-              ? <Spinner size="sm" color="white" />
-              : enPausa ? <IconPlay /> : <IconPause />}
-            <span>{enPausa ? 'REANUDAR' : 'PAUSAR'}</span>
-          </button>
+          <div className={styles.accionesRow}>
+            {/* Botón pausa existente */}
+            {!enDescanso && (
+              <button
+                className={`${styles.pauseBtn} ${enPausa ? styles.pauseBtnActive : ''}`}
+                onClick={enPausa ? handleReanudar : () => setShowModal(true)}
+                disabled={actionLoading}
+              >
+                {actionLoading
+                  ? <Spinner size="sm" color="white" />
+                  : enPausa ? <IconPlay /> : <IconPause />}
+                <span>{enPausa ? 'REANUDAR' : 'PAUSAR'}</span>
+              </button>
+            )}
+
+            {/* SCRUM-51: Botón "Iniciar descanso" / "Terminar descanso" */}
+            {!enPausa && (
+              <button
+                className={`${styles.descansoBtn} ${enDescanso ? styles.descansoBtnActive : ''}`}
+                onClick={enDescanso ? handleFinalizarDescanso : handleIniciarDescanso}
+                disabled={actionLoading}
+              >
+                {actionLoading
+                  ? <Spinner size="sm" color="white" />
+                  : <IconMoon />}
+                <span>{enDescanso ? 'TERMINAR DESCANSO' : 'INICIAR DESCANSO'}</span>
+              </button>
+            )}
+          </div>
         )}
       </section>
 
@@ -297,6 +409,20 @@ export default function PausasPage() {
             <p className={styles.metricValue}>
               {asistencia?.tiempo_en_pausa_segundos != null
                 ? secsToHHMM(asistencia.tiempo_en_pausa_segundos)
+                : '--:--:--'}
+            </p>
+          </div>
+        </div>
+        {/* SCRUM-52: nueva métrica de tiempo en descanso */}
+        <div className={`${styles.metricCard} ${enDescanso ? styles.metricCardDescanso : ''}`}>
+          <span className={`${styles.metricIcon} ${enDescanso ? styles.metricIconDescanso : ''}`}>
+            <IconMoon />
+          </span>
+          <div>
+            <p className={styles.metricLabel}>EN DESCANSO</p>
+            <p className={styles.metricValue}>
+              {asistencia?.tiempo_en_descanso_segundos != null
+                ? secsToHHMM(asistencia.tiempo_en_descanso_segundos)
                 : '--:--:--'}
             </p>
           </div>
@@ -335,7 +461,7 @@ export default function PausasPage() {
           <button
             className={styles.finalizarBtn}
             onClick={handleFinalizarJornada}
-            disabled={actionLoading || enPausa}
+            disabled={actionLoading || enPausa || enDescanso}
           >
             {actionLoading
               ? <Spinner size="sm" color="white" />

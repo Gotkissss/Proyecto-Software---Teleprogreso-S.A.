@@ -49,7 +49,7 @@
   background: var(--color-surface);
   box-shadow: var(--shadow-md);
   animation: pulse-ring 3s ease infinite;
-  transition: border-color var(--transition-slow);
+  transition: border-color var(--transition-slow), box-shadow var(--transition-slow);
 }
 
 .clockRingPaused {
@@ -58,9 +58,23 @@
   opacity: 0.85;
 }
 
+/* SCRUM-52: estado visual del reloj en descanso */
+.clockRingDescanso {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 6px rgba(124, 58, 237, 0.12), var(--shadow-md);
+  animation: pulse-descanso 3s ease infinite;
+}
+
+@keyframes pulse-descanso {
+  0%   { box-shadow: 0 0 0 0 rgba(124,58,237,.35), var(--shadow-md); }
+  70%  { box-shadow: 0 0 0 10px rgba(124,58,237,0), var(--shadow-md); }
+  100% { box-shadow: 0 0 0 0 rgba(124,58,237,0), var(--shadow-md); }
+}
+
 .clockIcon { color: var(--color-primary); }
 .clockIcon svg { width: 20px; height: 20px; }
-.clockRingPaused .clockIcon { color: var(--color-warning); }
+.clockRingPaused   .clockIcon { color: var(--color-warning); }
+.clockRingDescanso .clockIcon { color: #7c3aed; }
 
 .clockTime {
   font-size: 30px;
@@ -71,7 +85,9 @@
   animation: tick 1s ease infinite;
 }
 
-.clockTimePaused { animation: none; color: var(--color-warning); }
+.clockTimePaused   { animation: none; color: var(--color-warning); }
+/* SCRUM-52 */
+.clockTimeDescanso { animation: none; color: #7c3aed; }
 
 .clockLabel {
   font-size: 10px;
@@ -88,12 +104,24 @@
   line-height: 1.5;
 }
 
-/* Botón pausa */
+/* ── SCRUM-51: Fila de botones de acción ─────── */
+.accionesRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 320px;
+}
+
+/* Botón pausa (sin cambios) */
 .pauseBtn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-2);
   padding: 0 var(--space-6);
+  width: 100%;
   height: 52px;
   border-radius: var(--radius-full);
   background: var(--color-primary);
@@ -124,10 +152,122 @@
   box-shadow: 0 6px 20px rgba(22,163,74,0.4);
 }
 
+/* SCRUM-51: Botón de descanso */
+.descansoBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-6);
+  width: 100%;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: #7c3aed;
+  border: 2px solid #7c3aed;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background var(--transition), transform var(--transition),
+              box-shadow var(--transition), color var(--transition);
+}
+.descansoBtn svg { width: 18px; height: 18px; }
+.descansoBtn:hover:not(:disabled) {
+  background: rgba(124, 58, 237, 0.08);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(124,58,237,0.2);
+}
+.descansoBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* SCRUM-51: Botón activo (terminar descanso) */
+.descansoBtnActive {
+  background: #7c3aed;
+  color: white;
+  border-color: #7c3aed;
+  box-shadow: 0 4px 16px rgba(124,58,237,0.35);
+}
+.descansoBtnActive:hover:not(:disabled) {
+  background: #6d28d9;
+  border-color: #6d28d9;
+  box-shadow: 0 6px 20px rgba(124,58,237,0.4);
+}
+
+/* ── SCRUM-52: Indicador de descanso activo ──── */
+.indicadorDescanso {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: rgba(124, 58, 237, 0.08);
+  border: 1.5px solid rgba(124, 58, 237, 0.25);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  width: 100%;
+  max-width: 280px;
+  position: relative;
+  overflow: hidden;
+}
+
+.indicadorDescansoIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(124,58,237,0.15);
+  border-radius: var(--radius-sm);
+  color: #7c3aed;
+  flex-shrink: 0;
+}
+.indicadorDescansoIcon svg { width: 18px; height: 18px; }
+
+.indicadorDescansoTexto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.indicadorDescansoLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: #7c3aed;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.indicadorDescansoTimer {
+  font-size: 18px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: #7c3aed;
+  letter-spacing: -0.5px;
+}
+
+/* Pulso animado en esquina del indicador */
+.indicadorDescansoPulso {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7c3aed;
+  animation: pulsoPunto 1.5s ease infinite;
+}
+
+@keyframes pulsoPunto {
+  0%   { transform: scale(1);   opacity: 1; }
+  50%  { transform: scale(1.5); opacity: 0.5; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
 /* ── Métricas ─────────────────────────────────── */
 .metrics {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: var(--space-3);
   padding: var(--space-4);
 }
@@ -139,22 +279,34 @@
   background: var(--color-surface);
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-3);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+/* SCRUM-52: tarjeta de descanso activa */
+.metricCardDescanso {
+  border-color: rgba(124, 58, 237, 0.35);
+  background: rgba(124,58,237,0.04);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.08);
 }
 
 .metricIcon { color: var(--color-primary); }
-.metricIcon svg { width: 22px; height: 22px; }
+.metricIcon svg { width: 20px; height: 20px; }
+
+/* SCRUM-52: icono de descanso activo */
+.metricIconDescanso { color: #7c3aed !important; }
 
 .metricLabel {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   color: var(--color-text-muted);
   letter-spacing: 0.07em;
   margin-bottom: 2px;
+  text-transform: uppercase;
 }
 
 .metricValue {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
   font-family: var(--font-mono);
   color: var(--color-text);
@@ -219,8 +371,10 @@
 }
 .historialIcon svg { width: 16px; height: 16px; }
 
-.iconEntrada { background: var(--color-primary-light); color: var(--color-primary); }
-.iconPausa   { background: var(--color-warning-light); color: var(--color-warning); }
+.iconEntrada  { background: var(--color-primary-light); color: var(--color-primary); }
+.iconPausa    { background: var(--color-warning-light); color: var(--color-warning); }
+/* SCRUM-52: icono de descanso en historial */
+.iconDescanso { background: rgba(124,58,237,0.12); color: #7c3aed; }
 
 .historialInfo {
   flex: 1;
