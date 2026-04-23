@@ -4,12 +4,14 @@ Proyecto de Ingeniería de Software para el desarrollo de una aplicación de sup
 
 ## 👥 Integrantes del Equipo
 
-- Harry Méndez – 24089
-- Juan Gualim – 24852
-- Blanca Raxón – 24960
-- Joel Nerio – 24253
-- Wilson Peña – 24760
-- Diego Quixchán – 24903
+| Nombre | Carné |
+|---|---|
+| Harry Méndez | 24089 |
+| Juan Gualim | 24852 |
+| Blanca Raxón | 24960 |
+| Joel Nerio | 24253 |
+| Wilson Peña | 24760 |
+| Diego Quixchán | 24903 |
 
 ## 📂 Estructura del Repositorio
 
@@ -40,8 +42,37 @@ Este proyecto consiste en el desarrollo de una aplicación web/móvil para la su
 - Gestión de asistencia y horarios
 - Dashboard de métricas y KPIs
 
-## 🛠️ Tecnologías Utilizadas
-
-*Aún por definir*
-
-Última actualización: 16/02/2026
+## 🚀 Stack tecnológico
+ 
+**Backend:** FastAPI + PostgreSQL/PostGIS + SQLAlchemy (async) + Alembic + JWT  
+**Frontend:** React 18 + Vite + React Router + Axios + CSS Modules (PWA)  
+**Infraestructura:** Docker Compose
+ 
+## ✨ Funcionalidades
+ 
+- **Técnicos (móvil/PWA):** ruta diaria con prioridades, control de asistencia (entrada/salida), pausas operativas con countdown, mapa de ruta
+- **Supervisores (desktop):** dashboard con métricas en tiempo real, gestión de alertas operativas, reasignación de tareas entre técnicos
+- **Autenticación:** JWT con control de acceso por rol (admin, supervisor, técnico, gerente)
+## 🛠️ Levantar el proyecto
+ 
+```bash
+# 1. Copiar y completar variables de entorno
+cp .env.example .env
+ 
+# 2. Levantar todos los servicios
+docker compose up --build
+```
+ 
+| Servicio | URL |
+|---|---|
+| Frontend | http://localhost:5173 |
+| Backend API | http://localhost:8000 |
+| Docs (Swagger) | http://localhost:8000/docs |
+ 
+Credenciales de prueba (seed automático):
+ 
+| Rol | Correo | Contraseña |
+|---|---|---|
+| Admin | admin@teleprogreso.com | Admin1234! |
+| Técnico | tecnico@teleprogreso.com | Tecnico1234! |
+ 
