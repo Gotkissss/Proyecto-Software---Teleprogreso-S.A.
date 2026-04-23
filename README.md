@@ -38,7 +38,7 @@ Documentación relacionada con la metodología Scrum
 ├── Corte 1/          # Materiales del primer corte
 ├── Corte 2/          # Materiales del segundo corte
 └── Scrum/            # Documentación de metodología Scrum
-``
+```
 
 ## 🏢 Sobre Teleprogreso S.A.
 
