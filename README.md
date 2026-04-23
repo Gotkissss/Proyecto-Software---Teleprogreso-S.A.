@@ -30,6 +30,16 @@ Materiales y entregables del segundo corte
 ### 📁 Scrum
 Documentación relacionada con la metodología Scrum
 
+```
+├── backend/          # FastAPI — modelos, rutas, seguridad, migraciones
+├── frontend/         # React/Vite — páginas, componentes, servicios API
+├── Avances 1/        # Entregables del primer avance
+├── Avances 2/        # Entregables del segundo avance
+├── Corte 1/          # Materiales del primer corte
+├── Corte 2/          # Materiales del segundo corte
+└── Scrum/            # Documentación de metodología Scrum
+``
+
 ## 🏢 Sobre Teleprogreso S.A.
 
 Teleprogreso S.A. es una empresa ubicada en Fraijanes que brinda servicios de internet por fibra óptica y televisión por cable, ofrecidos a sus clientes mediante un pago mensual. Este tipo de empresas se conocen como ISP (Internet Service Provider), ya que se encargan de proveer acceso a internet y servicios de conectividad a hogares y negocios.
