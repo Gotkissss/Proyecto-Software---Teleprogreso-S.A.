@@ -1,3 +1,14 @@
+/**
+ * pages/AlertasPage.jsx
+ * ---------------------------------------------------------------------------
+ * Gestión de alertas operativas del supervisor.
+ * Muestra retrasos, técnicos sin asignar, incidencias, etc.
+ *
+ * Mientras el backend no tenga /alertas, usa datos MOCK.
+ * Para activar el backend real: cambiar USE_MOCK a false.
+ * ---------------------------------------------------------------------------
+ */
+
 import { useEffect, useState } from 'react'
 import Spinner from '../components/ui/Spinner'
 import Badge from '../components/ui/Badge'
@@ -5,6 +16,7 @@ import styles from './AlertasPage.module.css'
 
 const USE_MOCK = true
 
+/* ── MOCK DATA ───────────────────────────────────────────────── */
 const MOCK_ALERTAS = [
   {
     id: 1,
@@ -44,6 +56,7 @@ const MOCK_ALERTAS = [
   },
 ]
 
+/* ── Helpers ─────────────────────────────────────────────────── */
 const formatHora = (isoString) => {
   const fecha = new Date(isoString)
   const ahora = new Date()
@@ -116,15 +129,7 @@ export default function AlertasPage() {
 
   return (
     <div className={styles.page}>
-      {/* ── Encabezado ── */}
-      <div className={styles.pageHeader}>
-        <h1 className={styles.title}>Alertas operativas</h1>
-        {alertasActivas.length > 0 && (
-          <p className={styles.subtitle}>
-            {alertasActivas.length} alerta{alertasActivas.length !== 1 ? 's' : ''} activa{alertasActivas.length !== 1 ? 's' : ''}
-          </p>
-        )}
-      </div>
+      <h1 className={styles.title}>Alertas operativas</h1>
 
       {alertasActivas.length === 0 ? (
         <div className={styles.emptyState}>
@@ -134,46 +139,41 @@ export default function AlertasPage() {
       ) : (
         <ul className={styles.alertasList}>
           {alertasActivas.map((alerta) => (
-            <li key={alerta.id} className={styles.alertaItem}>
-              {/* Barra lateral de color */}
-              <div className={`${styles.accentBar} ${styles[alerta.nivel]}`} />
-
-              {/* Cuerpo principal */}
-              <div className={styles.alertaBody}>
-                <div className={styles.alertaTop}>
-                  <Badge
-                    label={alerta.nivel === 'critico' ? 'Crítico' : 'Advertencia'}
-                    variant={alerta.nivel === 'critico' ? 'danger' : 'warning'}
-                  />
-                  <span className={styles.alertaHora}>
-                    {formatHora(alerta.fecha_hora)}
-                  </span>
-                </div>
-
-                <p className={styles.alertaMensaje}>{alerta.mensaje}</p>
-
-                <div className={styles.alertaMeta}>
-                  {alerta.tecnico && (
-                    <span>
-                      Técnico: <strong>{alerta.tecnico.nombre_completo}</strong>
-                    </span>
-                  )}
-                  {alerta.tarea && (
-                    <span>{alerta.tarea.titulo}</span>
-                  )}
-                </div>
+            <li
+              key={alerta.id}
+              className={`${styles.alertaItem} ${styles[alerta.nivel]}`}
+            >
+              <div className={styles.alertaHeader}>
+                <Badge
+                  label={alerta.nivel === 'critico' ? 'Crítico' : 'Advertencia'}
+                  variant={alerta.nivel === 'critico' ? 'danger' : 'warning'}
+                />
+                <span className={styles.alertaHora}>
+                  {formatHora(alerta.fecha_hora)}
+                </span>
               </div>
 
-              {/* Pie con acción */}
-              <div className={styles.alertaFooter}>
-                <button
-                  className={styles.resolverBtn}
-                  onClick={() => handleResolver(alerta.id)}
-                  disabled={resolviendo === alerta.id}
-                >
-                  {resolviendo === alerta.id ? 'Resolviendo...' : 'Marcar como resuelta'}
-                </button>
-              </div>
+              <p className={styles.alertaMensaje}>{alerta.mensaje}</p>
+
+              {alerta.tecnico && (
+                <p className={styles.alertaTecnico}>
+                  Técnico: <strong>{alerta.tecnico.nombre_completo}</strong>
+                </p>
+              )}
+
+              {alerta.tarea && (
+                <p className={styles.alertaTarea}>
+                  Tarea: {alerta.tarea.titulo}
+                </p>
+              )}
+
+              <button
+                className={styles.resolverBtn}
+                onClick={() => handleResolver(alerta.id)}
+                disabled={resolviendo === alerta.id}
+              >
+                {resolviendo === alerta.id ? 'Resolviendo...' : 'Marcar como resuelta'}
+              </button>
             </li>
           ))}
         </ul>
