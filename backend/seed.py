@@ -252,5 +252,6 @@ if __name__ == "__main__":
     try:
         asyncio.run(seed())
     except Exception as e:
-        print(f"\n❌ Error durante el seed: {e}")
-        sys.exit(1)
+        print(f"\n⚠️  Error durante el seed (no crítico): {e}")
+        print("   El servidor continuará arrancando.")
+        # NO hacemos sys.exit(1) — queremos que el contenedor arranque igual
