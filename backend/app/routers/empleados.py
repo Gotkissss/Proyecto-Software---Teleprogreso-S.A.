@@ -126,8 +126,13 @@ async def get_empleados( # Endpoint para listar empleados con filtros opcionales
 
 
 # ----------------- POST /empleados ---------------
-# implementado por Biancka.
-# Se incluye aquí el stub del endpoint para que quede en el mismo router
+# Como administrador, quiero crear nuevos empleados en el sistema.
+#
+# Validaciones de negocio implementadas:
+#   1. Correo unico: si ya existe -> 409 Conflict
+#   2. Rol valido: validado por el Enum RolEmpleado del schema -> 422
+#   3. Fecha ISO: validada por el tipo date de Pydantic -> 422
+#   4. Contrasena minima 8 chars: validator en EmpleadoCreate -> 422
 
 @router.post(
     "/",
@@ -140,8 +145,15 @@ async def create_empleado(
     db: Annotated[AsyncSession, Depends(get_db)],
     _current_user: Annotated[Empleado, Depends(require_admin)],
 ):
+    """
+    Crea un nuevo empleado en el sistema.
+    Solo accesible para usuarios con rol 'admin'.
+    La contrasena se guarda hasheada con bcrypt; nunca en texto plano.
+    """
 
     #  Verificar que el correo no este registrado ya
+    #  (la columna 'correo' tiene unique=True en la BD, pero validamos antes
+    #   para devolver un mensaje claro en lugar de un IntegrityError feo)
     result = await db.execute(
         select(Empleado).where(Empleado.correo == empleado_data.correo)
     )
@@ -167,7 +179,8 @@ async def create_empleado(
     )
 
     db.add(nuevo_empleado)
-    await db.flush()  # Obtener el id_empleado generado
+    await db.flush()             # Obtener el id_empleado generado por la BD
+    await db.refresh(nuevo_empleado)  # Cargar fecha_registro (server_default=now())
 
     return nuevo_empleado
 
