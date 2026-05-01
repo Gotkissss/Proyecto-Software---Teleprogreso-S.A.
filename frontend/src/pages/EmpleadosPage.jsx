@@ -17,9 +17,9 @@ import Spinner from '../components/ui/Spinner'
 import Badge from '../components/ui/Badge'
 import styles from './EmpleadosPage.module.css'
 
-const USE_MOCK = true
+const USE_MOCK = false
 
-/* ── MOCK DATA ───────────────────────────────────────────────── */
+/* ── MOCK DATA (solo se usa si USE_MOCK = true) ──────────────── */
 const MOCK_EMPLEADOS = [
   {
     id_empleado: 1,
@@ -277,7 +277,6 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
   const [errorServidor, setErrorServidor] = useState(null)
   const [showPass,    setShowPass]    = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
-  // Campos "tocados" para mostrar errores inline solo después de interacción
   const [tocados,     setTocados]     = useState({})
 
   const strength = getPasswordStrength(form.contrasena)
@@ -285,7 +284,6 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
   const handleChange = (campo, valor) => {
     setForm(prev => ({ ...prev, [campo]: valor }))
     setErrorServidor(null)
-    // Revalidar campo en tiempo real si ya fue tocado
     if (tocados[campo]) {
       const nuevosErrores = validarFormulario({ ...form, [campo]: valor })
       setErrores(prev => ({ ...prev, [campo]: nuevosErrores[campo] || null }))
@@ -301,7 +299,6 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // Marcar todos como tocados
     const todosTocados = Object.keys(FORM_INICIAL).reduce((acc, k) => ({ ...acc, [k]: true }), {})
     setTocados(todosTocados)
 
@@ -310,7 +307,6 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
 
     if (Object.keys(erroresValidacion).length > 0) return
 
-    // Verificar correo duplicado localmente antes de llamar al backend
     if (empleadosExistentes.some(e => e.correo.toLowerCase() === form.correo.trim().toLowerCase())) {
       setErrores(prev => ({ ...prev, correo: 'Este correo ya está registrado en el sistema.' }))
       return
@@ -326,17 +322,16 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
         correo:             form.correo.trim().toLowerCase(),
         telefono:           form.telefono.trim() || null,
         rol:                form.rol,
-        estado:             form.estado,
         contrasena:         form.contrasena,
         fecha_contratacion: form.fecha_contratacion,
       }
 
       if (USE_MOCK) {
-        // Simulación del backend
         await new Promise(r => setTimeout(r, 800))
         const nuevoEmpleado = {
           id_empleado:        Date.now(),
           ...payload,
+          estado:             form.estado,
           fecha_registro:     new Date().toISOString(),
           ultimo_acceso:      null,
         }
@@ -349,8 +344,9 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
       const status = err?.response?.status
       const detail = err?.response?.data?.detail
 
-      if (status === 400 || status === 422) {
-        // Manejar errores de validación del backend
+      if (status === 409) {
+        setErrores(prev => ({ ...prev, correo: 'Este correo ya está registrado en el sistema.' }))
+      } else if (status === 400 || status === 422) {
         if (Array.isArray(detail)) {
           const errBack = {}
           detail.forEach(d => {
@@ -364,21 +360,17 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
             return
           }
         }
-        // Error de correo duplicado
         const msg = typeof detail === 'string' ? detail : ''
         if (
           msg.toLowerCase().includes('correo') ||
           msg.toLowerCase().includes('email') ||
           msg.toLowerCase().includes('duplicate') ||
-          msg.toLowerCase().includes('unique') ||
-          status === 409
+          msg.toLowerCase().includes('unique')
         ) {
           setErrores(prev => ({ ...prev, correo: 'Este correo ya está registrado en el sistema.' }))
           return
         }
         setErrorServidor(msg || 'Los datos enviados no son válidos.')
-      } else if (status === 409) {
-        setErrores(prev => ({ ...prev, correo: 'Este correo ya está registrado en el sistema.' }))
       } else {
         setErrorServidor('Error al conectar con el servidor. Intenta de nuevo.')
       }
@@ -393,7 +385,6 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
     <div className={styles.panelOverlay} onClick={onCerrar}>
       <div className={styles.editPanel} onClick={e => e.stopPropagation()}>
 
-        {/* ── Cabecera ─────────────────────────────── */}
         <div className={styles.editPanelHeader}>
           <div className={styles.editPanelHeaderLeft}>
             <div className={styles.editAvatar} style={{ background: '#dbeafe', color: '#2563eb' }}>
@@ -409,7 +400,6 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
           </button>
         </div>
 
-        {/* ── Error del servidor ────────────────────── */}
         {errorServidor && (
           <div className={styles.editErrorBanner}>
             <IconAlert />
@@ -417,14 +407,11 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
           </div>
         )}
 
-        {/* ── Formulario ───────────────────────────── */}
         <form className={styles.editForm} onSubmit={handleSubmit} noValidate>
 
-          {/* Sección: Datos personales */}
           <div className={styles.formSectionLabel}>Datos personales</div>
 
           <div className={styles.editFormGrid}>
-            {/* Nombre */}
             <div className={styles.editField}>
               <label className={styles.editLabel}>
                 Nombre <span className={styles.required}>*</span>
@@ -444,7 +431,6 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
               )}
             </div>
 
-            {/* Apellido */}
             <div className={styles.editField}>
               <label className={styles.editLabel}>
                 Apellido <span className={styles.required}>*</span>
@@ -465,7 +451,6 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
             </div>
           </div>
 
-          {/* Correo */}
           <div className={styles.editField}>
             <label className={styles.editLabel}>
               Correo electrónico <span className={styles.required}>*</span>
@@ -485,7 +470,6 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
             )}
           </div>
 
-          {/* Teléfono */}
           <div className={styles.editField}>
             <label className={styles.editLabel}>Teléfono <span className={styles.optional}>(opcional)</span></label>
             <input
@@ -503,11 +487,9 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
             )}
           </div>
 
-          {/* Sección: Rol y estado */}
           <div className={styles.formSectionLabel}>Rol y estado</div>
 
           <div className={styles.editFormGrid}>
-            {/* Rol */}
             <div className={styles.editField}>
               <label className={styles.editLabel}>
                 Rol <span className={styles.required}>*</span>
@@ -524,7 +506,6 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
               </select>
             </div>
 
-            {/* Fecha contratación */}
             <div className={styles.editField}>
               <label className={styles.editLabel}>
                 Fecha de contratación <span className={styles.required}>*</span>
@@ -544,7 +525,6 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
             </div>
           </div>
 
-          {/* Estado */}
           <div className={styles.editField}>
             <label className={styles.editLabel}>Estado inicial</label>
             <div className={styles.estadoToggleGroup}>
@@ -563,10 +543,8 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
             </div>
           </div>
 
-          {/* Sección: Seguridad */}
           <div className={styles.formSectionLabel}>Contraseña de acceso</div>
 
-          {/* Contraseña */}
           <div className={styles.editField}>
             <label className={styles.editLabel}>
               Contraseña <span className={styles.required}>*</span>
@@ -592,7 +570,6 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
                 {showPass ? <IconEyeOff /> : <IconEye />}
               </button>
             </div>
-            {/* Barra de fortaleza */}
             {form.contrasena && (
               <div className={styles.strengthBar}>
                 <div className={styles.strengthSegments}>
@@ -621,7 +598,6 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
             )}
           </div>
 
-          {/* Confirmar contraseña */}
           <div className={styles.editField}>
             <label className={styles.editLabel}>
               Confirmar contraseña <span className={styles.required}>*</span>
@@ -652,7 +628,6 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
             )}
           </div>
 
-          {/* Botones */}
           <div className={styles.editFormBtns}>
             <button
               type="button"
@@ -838,19 +813,15 @@ export default function EmpleadosPage() {
   const [busqueda,       setBusqueda]       = useState('')
   const [filtroRol,      setFiltroRol]      = useState('todos')
 
-  // Panel editar
   const [empleadoEditar, setEmpleadoEditar] = useState(null)
   const [editCargando,   setEditCargando]   = useState(false)
   const [editError,      setEditError]      = useState(null)
 
-  // Modal toggle estado
   const [empleadoToggle, setEmpleadoToggle] = useState(null)
   const [toggleCargando, setToggleCargando] = useState(false)
 
-  // Panel crear empleado (SCRUM-65 / SCRUM-66)
   const [mostrarCrear,   setMostrarCrear]   = useState(false)
 
-  // Mensajes de éxito
   const [successMsg,     setSuccessMsg]     = useState(null)
   const successTimer = useRef(null)
 
@@ -872,8 +843,9 @@ export default function EmpleadosPage() {
           await new Promise(r => setTimeout(r, 500))
           setEmpleados(MOCK_EMPLEADOS)
         } else {
-          const { data } = await apiClient.get('/empleados')
-          setEmpleados(data)
+          // El backend devuelve { total, empleados: [...] } envuelto en EmpleadoListResponse
+          const { data } = await apiClient.get('/empleados/')
+          setEmpleados(Array.isArray(data) ? data : (data?.empleados ?? []))
         }
       } catch (err) {
         setError(err?.response?.data?.detail || 'No se pudieron cargar los empleados.')
@@ -917,12 +889,12 @@ export default function EmpleadosPage() {
     }
   }
 
-  /* Toggle estado */
+  /* Toggle estado — usa el endpoint correcto PATCH /empleados/{id}/estado */
   const handleToggleEstado = async (id, nuevoEstado) => {
     setToggleCargando(true)
     try {
       if (!USE_MOCK) {
-        const { data } = await apiClient.patch(`/empleados/${id}`, { estado: nuevoEstado })
+        const { data } = await apiClient.patch(`/empleados/${id}/estado`, { estado: nuevoEstado })
         setEmpleados(prev => prev.map(e => e.id_empleado === id ? { ...e, estado: data.estado } : e))
       } else {
         await new Promise(r => setTimeout(r, 600))
@@ -973,7 +945,6 @@ export default function EmpleadosPage() {
 
   return (
     <div className={styles.page}>
-      {/* ── Cabecera ─────────────────────────────────── */}
       <div className={styles.pageHeader}>
         <div className={styles.pageHeaderLeft}>
           <h1 className={styles.title}>Gestión de Empleados</h1>
@@ -986,7 +957,6 @@ export default function EmpleadosPage() {
           </p>
         </div>
 
-        {/* SCRUM-65: Botón Nuevo empleado */}
         <button
           className={styles.btnNuevoEmpleado}
           onClick={() => setMostrarCrear(true)}
@@ -996,7 +966,6 @@ export default function EmpleadosPage() {
         </button>
       </div>
 
-      {/* ── Mensaje de éxito ─────────────────────────── */}
       {successMsg && (
         <div className={styles.successBanner}>
           <IconCheck />
@@ -1004,12 +973,10 @@ export default function EmpleadosPage() {
         </div>
       )}
 
-      {/* ── Error no crítico ─────────────────────────── */}
       {error && empleados.length > 0 && (
         <div className={styles.errorBanner}>{error}</div>
       )}
 
-      {/* ── Barra de búsqueda y filtros ──────────────── */}
       <div className={styles.toolbar}>
         <div className={styles.searchWrap}>
           <span className={styles.searchIcon}><IconSearch /></span>
@@ -1035,7 +1002,6 @@ export default function EmpleadosPage() {
         </div>
       </div>
 
-      {/* ── Tabla ────────────────────────────────────── */}
       {empleadosFiltrados.length === 0 ? (
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}><IconUser /></div>
@@ -1122,7 +1088,6 @@ export default function EmpleadosPage() {
         </div>
       )}
 
-      {/* ── Panel Crear (SCRUM-65 / SCRUM-66) ────────── */}
       {mostrarCrear && (
         <PanelCrearEmpleado
           onCreado={handleEmpleadoCreado}
@@ -1131,7 +1096,6 @@ export default function EmpleadosPage() {
         />
       )}
 
-      {/* ── Panel Editar ─────────────────────────────── */}
       {empleadoEditar && (
         <PanelEditar
           empleado={empleadoEditar}
@@ -1142,7 +1106,6 @@ export default function EmpleadosPage() {
         />
       )}
 
-      {/* ── Modal Toggle Estado ───────────────────────── */}
       {empleadoToggle && (
         <ModalConfirmacion
           empleado={empleadoToggle}
