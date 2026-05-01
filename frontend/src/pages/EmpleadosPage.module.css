@@ -1,10 +1,11 @@
 /* ============================================================
    EmpleadosPage.module.css
    Gestión de Empleados — Panel Supervisor/Admin
-   Hereda la paleta y variables de index.css
+   Incluye estilos para SCRUM-65 y SCRUM-66:
+   PanelCrearEmpleado, validación, fortaleza de contraseña,
+   toggle de estado, confirmación visual y botón nuevo empleado.
    ============================================================ */
 
-/* ── Variables locales (coherentes con el resto de páginas) ── */
 .page {
   --c-bg:         #F0F2F5;
   --c-surface:    #FFFFFF;
@@ -51,8 +52,8 @@
 }
 
 .loadingText {
-  font-size:  .875rem;
-  color:      var(--c-text-sub);
+  font-size: .875rem;
+  color:     var(--c-text-sub);
 }
 
 .errorText {
@@ -64,15 +65,20 @@
 
 /* ── Cabecera de página ────────────────────────────────────── */
 .pageHeader {
-  display:       flex;
-  align-items:   flex-start;
+  display:        flex;
+  align-items:    flex-start;
   justify-content:space-between;
-  margin-bottom: 20px;
-  flex-wrap:     wrap;
-  gap:           12px;
+  margin-bottom:  20px;
+  flex-wrap:      wrap;
+  gap:            12px;
 }
 
-.pageHeaderLeft {}
+.pageHeaderLeft {
+  display:        flex;
+  flex-direction: column;
+  gap:            4px;
+  min-width:      0;
+}
 
 .title {
   font-size:      1.6rem;
@@ -83,13 +89,43 @@
 }
 
 .subtitle {
-  font-size:  .875rem;
-  color:      var(--c-text-sub);
-  margin:     0;
+  font-size: .875rem;
+  color:     var(--c-text-sub);
+  margin:    0;
 }
 
-.countActivos   { color: var(--c-green);  font-weight: 600; }
-.countInactivos { color: var(--c-red);    font-weight: 600; }
+.countActivos   { color: var(--c-green); font-weight: 600; }
+.countInactivos { color: var(--c-red);   font-weight: 600; }
+
+/* ── Botón Nuevo Empleado (SCRUM-65) ───────────────────────── */
+.btnNuevoEmpleado {
+  display:       flex;
+  align-items:   center;
+  gap:           8px;
+  padding:       10px 20px;
+  background:    var(--c-blue);
+  color:         #fff;
+  border:        none;
+  border-radius: var(--radius-md);
+  font-family:   var(--font);
+  font-size:     .875rem;
+  font-weight:   700;
+  cursor:        pointer;
+  transition:    background .15s, transform .12s, box-shadow .15s;
+  box-shadow:    0 2px 8px rgba(37,99,235,.3);
+  flex-shrink:   0;
+  letter-spacing:.2px;
+}
+
+.btnNuevoEmpleado svg { width: 16px; height: 16px; }
+
+.btnNuevoEmpleado:hover {
+  background:  var(--c-blue-hover);
+  transform:   translateY(-1px);
+  box-shadow:  0 4px 14px rgba(37,99,235,.4);
+}
+
+.btnNuevoEmpleado:active { transform: translateY(0); }
 
 /* ── Banners ───────────────────────────────────────────────── */
 .successBanner {
@@ -123,7 +159,7 @@
   to   { opacity: 1; transform: translateY(0);    }
 }
 
-/* ── Toolbar (búsqueda + filtros) ──────────────────────────── */
+/* ── Toolbar ───────────────────────────────────────────────── */
 .toolbar {
   display:       flex;
   align-items:   center;
@@ -133,18 +169,18 @@
 }
 
 .searchWrap {
-  position:      relative;
-  flex:          1;
-  min-width:     220px;
+  position: relative;
+  flex:     1;
+  min-width:220px;
 }
 
 .searchIcon {
-  position:   absolute;
-  left:        12px;
-  top:         50%;
-  transform:   translateY(-50%);
-  color:       var(--c-text-sub);
-  display:     flex;
+  position:      absolute;
+  left:          12px;
+  top:           50%;
+  transform:     translateY(-50%);
+  color:         var(--c-text-sub);
+  display:       flex;
   pointer-events:none;
 }
 .searchIcon svg { width: 16px; height: 16px; }
@@ -200,21 +236,21 @@
 }
 
 .filterSelect {
-  height:        40px;
-  padding:       0 32px 0 12px;
-  border:        1.5px solid var(--c-border);
-  border-radius: var(--radius-md);
-  font-family:   var(--font);
-  font-size:     .875rem;
-  color:         var(--c-text-main);
-  background:    var(--c-surface);
-  outline:       none;
-  cursor:        pointer;
-  appearance:    none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-  background-repeat:   no-repeat;
-  background-position: right 10px center;
-  transition:    border-color .15s;
+  height:             40px;
+  padding:            0 32px 0 12px;
+  border:             1.5px solid var(--c-border);
+  border-radius:      var(--radius-md);
+  font-family:        var(--font);
+  font-size:          .875rem;
+  color:              var(--c-text-main);
+  background:         var(--c-surface);
+  outline:            none;
+  cursor:             pointer;
+  appearance:         none;
+  background-image:   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:  no-repeat;
+  background-position:right 10px center;
+  transition:         border-color .15s;
 }
 .filterSelect:focus {
   border-color: var(--c-blue);
@@ -236,7 +272,7 @@
 }
 
 .thead {
-  background: #F8FAFC;
+  background:    #F8FAFC;
   border-bottom: 2px solid var(--c-border);
 }
 
@@ -251,9 +287,7 @@
   white-space:    nowrap;
 }
 
-.thAcciones {
-  text-align: right;
-}
+.thAcciones { text-align: right; }
 
 .tr {
   border-bottom: 1px solid var(--c-border);
@@ -262,10 +296,7 @@
 .tr:last-child { border-bottom: none; }
 .tr:hover { background: #FAFBFC; }
 
-.trInactivo {
-  background: #FAFAFA;
-  opacity:    0.75;
-}
+.trInactivo { background: #FAFAFA; opacity: .75; }
 .trInactivo:hover { background: #F5F5F5; opacity: .85; }
 
 .td {
@@ -276,11 +307,11 @@
 }
 
 .tdAcciones {
-  text-align: right;
+  text-align:  right;
   white-space: nowrap;
 }
 
-/* ── Celda de empleado (avatar + nombre) ───────────────────── */
+/* ── Celda empleado ────────────────────────────────────────── */
 .empleadoCell {
   display:     flex;
   align-items: center;
@@ -302,10 +333,7 @@
   letter-spacing:  -.5px;
 }
 
-.avatarInactivo {
-  background: #E2E8F0;
-  color:      #94A3B8;
-}
+.avatarInactivo { background: #E2E8F0; color: #94A3B8; }
 
 .empleadoInfo {
   display:        flex;
@@ -324,43 +352,29 @@
   color:     var(--c-text-sub);
 }
 
-/* ── Celdas de datos ───────────────────────────────────────── */
 .telefonoText {
   font-size:   .85rem;
   color:       var(--c-text-sub);
   font-family: 'DM Mono', monospace;
 }
 
-.fechaText {
-  font-size: .82rem;
-  color:     var(--c-text-sub);
-}
+.fechaText { font-size: .82rem; color: var(--c-text-sub); }
+.sinDato   { color: #CBD5E1; }
 
-.sinDato {
-  color: #CBD5E1;
-}
-
-/* ── Badge de estado (activo/inactivo) ─────────────────────── */
+/* ── Badge estado ──────────────────────────────────────────── */
 .estadoBadge {
-  display:        inline-flex;
-  align-items:    center;
-  gap:            6px;
-  padding:        3px 10px;
-  border-radius:  9999px;
-  font-size:      .78rem;
-  font-weight:    600;
-  white-space:    nowrap;
+  display:     inline-flex;
+  align-items: center;
+  gap:         6px;
+  padding:     3px 10px;
+  border-radius:9999px;
+  font-size:   .78rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.estadoActivo {
-  background: #DCFCE7;
-  color:      #16A34A;
-}
-
-.estadoInactivo {
-  background: #F1F5F9;
-  color:      #94A3B8;
-}
+.estadoActivo   { background: #DCFCE7; color: #16A34A; }
+.estadoInactivo { background: #F1F5F9; color: #94A3B8; }
 
 .estadoDot {
   width:         6px;
@@ -382,44 +396,21 @@
   font-size:     .8rem;
   font-weight:   600;
   cursor:        pointer;
-  transition:    background .14s, transform .12s, box-shadow .14s;
+  transition:    background .14s, transform .12s;
   white-space:   nowrap;
   border:        none;
 }
 .btnEditar svg,
 .btnToggle svg { width: 14px; height: 14px; flex-shrink: 0; }
 
-/* Editar: azul suave */
-.btnEditar {
-  background:  var(--c-blue-soft);
-  color:       var(--c-blue);
-  margin-right:6px;
-}
-.btnEditar:hover {
-  background:  #DBEAFE;
-  transform:   translateY(-1px);
-}
-.btnEditar:active { transform: translateY(0); }
+.btnEditar { background: var(--c-blue-soft); color: var(--c-blue); margin-right: 6px; }
+.btnEditar:hover { background: #DBEAFE; transform: translateY(-1px); }
 
-/* Desactivar: rojo suave */
-.btnDesactivar {
-  background: var(--c-red-soft);
-  color:      var(--c-red);
-}
-.btnDesactivar:hover {
-  background: #FEE2E2;
-  transform:  translateY(-1px);
-}
+.btnDesactivar { background: var(--c-red-soft);   color: var(--c-red);   }
+.btnDesactivar:hover { background: #FEE2E2; transform: translateY(-1px); }
 
-/* Activar: verde suave */
-.btnActivar {
-  background: var(--c-green-soft);
-  color:      var(--c-green);
-}
-.btnActivar:hover {
-  background: #DCFCE7;
-  transform:  translateY(-1px);
-}
+.btnActivar { background: var(--c-green-soft); color: var(--c-green); }
+.btnActivar:hover { background: #DCFCE7; transform: translateY(-1px); }
 
 /* ── Contador de resultados ────────────────────────────────── */
 .resultCount {
@@ -454,11 +445,7 @@
 }
 .emptyIcon svg { width: 26px; height: 26px; }
 
-.emptyMsg {
-  font-size:  .9rem;
-  color:      var(--c-text-sub);
-  text-align: center;
-}
+.emptyMsg { font-size: .9rem; color: var(--c-text-sub); text-align: center; }
 
 .emptyResetBtn {
   margin-top:    4px;
@@ -481,7 +468,7 @@
 .modalOverlay {
   position:        fixed;
   inset:           0;
-  background:      rgba(15, 23, 42, 0.5);
+  background:      rgba(15,23,42,0.5);
   backdrop-filter: blur(3px);
   display:         flex;
   align-items:     center;
@@ -497,17 +484,17 @@
 }
 
 .modal {
-  background:    var(--c-surface);
-  border-radius: var(--radius-xl);
-  box-shadow:    var(--shadow-panel);
-  padding:       32px 28px 28px;
-  width:         100%;
-  max-width:     420px;
-  display:       flex;
-  flex-direction:column;
-  align-items:   center;
-  text-align:    center;
-  animation:     modalPop .22s cubic-bezier(.34,1.4,.64,1);
+  background:     var(--c-surface);
+  border-radius:  var(--radius-xl);
+  box-shadow:     var(--shadow-panel);
+  padding:        32px 28px 28px;
+  width:          100%;
+  max-width:      420px;
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  text-align:     center;
+  animation:      modalPop .22s cubic-bezier(.34,1.4,.64,1);
 }
 
 @keyframes modalPop {
@@ -526,15 +513,8 @@
 }
 .modalIconWrap svg { width: 26px; height: 26px; }
 
-.modalIconDanger {
-  background: var(--c-red-soft);
-  color:      var(--c-red);
-}
-
-.modalIconSuccess {
-  background: var(--c-green-soft);
-  color:      var(--c-green);
-}
+.modalIconDanger  { background: var(--c-red-soft);   color: var(--c-red);   }
+.modalIconSuccess { background: var(--c-green-soft);  color: var(--c-green); }
 
 .modalTitle {
   font-size:   1.1rem;
@@ -572,11 +552,7 @@
   cursor:        pointer;
   transition:    background .14s, border-color .14s;
 }
-.modalCancelBtn:hover:not(:disabled) {
-  background:   #F1F5F9;
-  border-color: #CBD5E1;
-  color:        var(--c-text-main);
-}
+.modalCancelBtn:hover:not(:disabled) { background: #F1F5F9; border-color: #CBD5E1; color: var(--c-text-main); }
 .modalCancelBtn:disabled { opacity: .5; cursor: not-allowed; }
 
 .modalConfirmBtn {
@@ -598,25 +574,18 @@
 .modalConfirmBtn:hover:not(:disabled) { transform: translateY(-1px); }
 .modalConfirmBtn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 
-.modalConfirmDanger {
-  background: var(--c-red);
-  color:      #fff;
-}
-.modalConfirmDanger:hover:not(:disabled) { background: var(--c-red-hover); }
-
-.modalConfirmSuccess {
-  background: var(--c-green);
-  color:      #fff;
-}
+.modalConfirmDanger  { background: var(--c-red);   color: #fff; }
+.modalConfirmDanger:hover:not(:disabled)  { background: var(--c-red-hover); }
+.modalConfirmSuccess { background: var(--c-green); color: #fff; }
 .modalConfirmSuccess:hover:not(:disabled) { background: #15803D; }
 
 /* ══════════════════════════════════════════════════════════════
-   PANEL DE EDICIÓN (bottom sheet / lateral en desktop)
+   PANEL LATERAL (Editar / Crear empleado)
    ══════════════════════════════════════════════════════════════ */
 .panelOverlay {
   position:        fixed;
   inset:           0;
-  background:      rgba(15, 23, 42, 0.45);
+  background:      rgba(15,23,42,0.45);
   backdrop-filter: blur(3px);
   display:         flex;
   align-items:     center;
@@ -629,7 +598,7 @@
   background:     var(--c-surface);
   height:         100%;
   width:          100%;
-  max-width:      460px;
+  max-width:      480px;
   display:        flex;
   flex-direction: column;
   box-shadow:     -8px 0 40px rgba(0,0,0,.15);
@@ -675,6 +644,7 @@
   flex-shrink:     0;
   letter-spacing:  -.5px;
 }
+.editAvatar svg { width: 22px; height: 22px; }
 
 .editPanelTitle {
   font-size:   1rem;
@@ -702,7 +672,7 @@
 .panelCloseBtn:hover { background: #E2E8F0; color: var(--c-text-main); }
 .panelCloseBtn svg { width: 18px; height: 18px; }
 
-/* Error dentro del panel */
+/* Error banner dentro del panel */
 .editErrorBanner {
   display:     flex;
   align-items: center;
@@ -714,6 +684,7 @@
   color:       var(--c-red);
   font-size:   .82rem;
   border-radius:var(--radius-md);
+  animation:   slideDown .25s ease;
 }
 .editErrorBanner svg { width: 15px; height: 15px; flex-shrink: 0; }
 
@@ -722,21 +693,33 @@
   padding:        24px;
   display:        flex;
   flex-direction: column;
-  gap:            18px;
+  gap:            16px;
   flex:           1;
 }
 
 .editFormGrid {
   display:               grid;
   grid-template-columns: 1fr 1fr;
-  gap:                   16px;
+  gap:                   14px;
 }
 
 @media (max-width: 500px) {
   .editFormGrid { grid-template-columns: 1fr; }
   .editPanel    { max-width: 100%; }
   .panelOverlay { align-items: flex-end; }
-  .editPanel    { height: auto; max-height: 90vh; border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
+  .editPanel    { height: auto; max-height: 92vh; border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
+}
+
+/* ── Separadores de sección del formulario (SCRUM-65) ──────── */
+.formSectionLabel {
+  font-size:      .72rem;
+  font-weight:    700;
+  color:          var(--c-text-sub);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  padding-bottom: 6px;
+  border-bottom:  2px solid var(--c-border);
+  margin-top:     4px;
 }
 
 .editField {
@@ -746,14 +729,15 @@
 }
 
 .editLabel {
-  font-size:   .8rem;
-  font-weight: 600;
-  color:       var(--c-text-sub);
-  text-transform:uppercase;
-  letter-spacing:.4px;
+  font-size:      .8rem;
+  font-weight:    600;
+  color:          var(--c-text-sub);
+  text-transform: uppercase;
+  letter-spacing: .4px;
 }
 
 .required { color: var(--c-red); }
+.optional { color: var(--c-text-sub); font-weight: 400; text-transform: none; font-size: .75rem; }
 
 .editInput {
   height:        40px;
@@ -774,50 +758,150 @@
 }
 .editInput:disabled { opacity: .6; cursor: not-allowed; }
 
-.editInputError {
-  border-color: var(--c-red) !important;
-}
-.editInputError:focus {
-  box-shadow: 0 0 0 3px rgba(239,68,68,.12) !important;
-}
+.editInputError { border-color: var(--c-red) !important; }
+.editInputError:focus { box-shadow: 0 0 0 3px rgba(239,68,68,.12) !important; }
+
+/* Input con icono ojo dentro */
+.editInputWithIcon { padding-right: 44px; }
 
 .editFieldError {
-  font-size:  .78rem;
-  color:      var(--c-red);
-  margin:     0;
+  font-size: .78rem;
+  color:     var(--c-red);
+  margin:    0;
+  display:   flex;
+  align-items:center;
+  gap:       4px;
 }
 
 .editSelect {
-  height:        40px;
-  padding:       0 32px 0 12px;
-  border:        1.5px solid var(--c-border);
-  border-radius: var(--radius-md);
-  font-family:   var(--font);
-  font-size:     .875rem;
-  color:         var(--c-text-main);
-  background:    #FAFAFA;
-  outline:       none;
-  appearance:    none;
-  cursor:        pointer;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  height:              40px;
+  padding:             0 32px 0 12px;
+  border:              1.5px solid var(--c-border);
+  border-radius:       var(--radius-md);
+  font-family:         var(--font);
+  font-size:           .875rem;
+  color:               var(--c-text-main);
+  background:          #FAFAFA;
+  outline:             none;
+  appearance:          none;
+  cursor:              pointer;
+  background-image:    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat:   no-repeat;
   background-position: right 10px center;
-  transition:    border-color .14s, box-shadow .14s;
+  transition:          border-color .14s, box-shadow .14s;
 }
-.editSelect:focus {
-  border-color: var(--c-blue);
-  box-shadow:   0 0 0 3px rgba(37,99,235,.10);
-}
+.editSelect:focus { border-color: var(--c-blue); box-shadow: 0 0 0 3px rgba(37,99,235,.10); }
 .editSelect:disabled { opacity: .6; cursor: not-allowed; }
+
+/* ── Toggle de estado (SCRUM-65) ───────────────────────────── */
+.estadoToggleGroup {
+  display: flex;
+  gap:     8px;
+}
+
+.estadoToggleBtn {
+  display:       flex;
+  align-items:   center;
+  gap:           7px;
+  padding:       8px 16px;
+  border-radius: var(--radius-md);
+  border:        1.5px solid var(--c-border);
+  background:    #FAFAFA;
+  font-family:   var(--font);
+  font-size:     .82rem;
+  font-weight:   600;
+  cursor:        pointer;
+  transition:    border-color .14s, background .14s, color .14s;
+  color:         var(--c-text-sub);
+}
+.estadoToggleBtn:disabled { opacity: .5; cursor: not-allowed; }
+
+.estadoToggleDot {
+  width:         8px;
+  height:        8px;
+  border-radius: 50%;
+  background:    currentColor;
+  flex-shrink:   0;
+}
+
+.estadoToggleBtnActivo.estadoToggleBtnActive {
+  border-color: var(--c-green);
+  background:   var(--c-green-soft);
+  color:        var(--c-green);
+}
+
+.estadoToggleBtnInactivo.estadoToggleBtnActive {
+  border-color: var(--c-red);
+  background:   var(--c-red-soft);
+  color:        var(--c-red);
+}
+
+/* ── Contraseña: ojo y fortaleza (SCRUM-65 / SCRUM-66) ─────── */
+.passWrap {
+  position: relative;
+}
+
+.passEyeBtn {
+  position:      absolute;
+  right:         10px;
+  top:           50%;
+  transform:     translateY(-50%);
+  background:    none;
+  border:        none;
+  cursor:        pointer;
+  color:         var(--c-text-sub);
+  display:       flex;
+  padding:       4px;
+  border-radius: 50%;
+  transition:    color .14s;
+}
+.passEyeBtn:hover { color: var(--c-text-main); }
+.passEyeBtn svg { width: 16px; height: 16px; }
+
+/* Barra de fortaleza */
+.strengthBar {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+  margin-top:  4px;
+}
+
+.strengthSegments {
+  display: flex;
+  gap:     4px;
+  flex:    1;
+}
+
+.strengthSegment {
+  height:        4px;
+  flex:          1;
+  border-radius: 9999px;
+  transition:    background .3s ease;
+}
+
+.strengthLabel {
+  font-size:   .75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  min-width:   40px;
+  transition:  color .3s ease;
+}
+
+.passHint {
+  font-size:  .75rem;
+  color:      var(--c-text-sub);
+  margin:     2px 0 0;
+  line-height:1.4;
+}
 
 /* Botones del formulario */
 .editFormBtns {
-  display:        flex;
-  gap:            10px;
-  margin-top:     auto;
-  padding-top:    8px;
-  border-top:     1px solid var(--c-border);
-  justify-content:flex-end;
+  display:         flex;
+  gap:             10px;
+  margin-top:      auto;
+  padding-top:     8px;
+  border-top:      1px solid var(--c-border);
+  justify-content: flex-end;
 }
 
 .editCancelBtn {
@@ -832,11 +916,7 @@
   cursor:        pointer;
   transition:    background .14s, border-color .14s;
 }
-.editCancelBtn:hover:not(:disabled) {
-  background:   #F1F5F9;
-  border-color: #CBD5E1;
-  color:        var(--c-text-main);
-}
+.editCancelBtn:hover:not(:disabled) { background: #F1F5F9; border-color: #CBD5E1; color: var(--c-text-main); }
 .editCancelBtn:disabled { opacity: .5; cursor: not-allowed; }
 
 .editSaveBtn {
@@ -851,11 +931,9 @@
   cursor:        pointer;
   display:       flex;
   align-items:   center;
-  gap:           6px;
+  gap:           7px;
   transition:    background .14s, transform .12s;
 }
-.editSaveBtn:hover:not(:disabled) {
-  background: var(--c-blue-hover);
-  transform:  translateY(-1px);
-}
-.editSaveBtn:disabled { opacity: .6; cursor: not-allowed; transform: none; } 
+.editSaveBtn svg { width: 15px; height: 15px; }
+.editSaveBtn:hover:not(:disabled) { background: var(--c-blue-hover); transform: translateY(-1px); }
+.editSaveBtn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
