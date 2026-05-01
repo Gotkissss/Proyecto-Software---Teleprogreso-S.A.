@@ -844,7 +844,7 @@ export default function EmpleadosPage() {
           setEmpleados(MOCK_EMPLEADOS)
         } else {
           // El backend devuelve { total, empleados: [...] } envuelto en EmpleadoListResponse
-          const { data } = await apiClient.get('/empleados/')
+          const { data } = await apiClient.get('/empleados')
           setEmpleados(Array.isArray(data) ? data : (data?.empleados ?? []))
         }
       } catch (err) {

@@ -47,7 +47,7 @@ router = APIRouter(prefix="/empleados", tags=["Empleados"])
 #Como administrador, quiero ver la lista completa de empleados.
 
 @router.get(
-    "/", # El path es solo "/" porque el prefijo del router ya es "/empleados"
+    "",  # ← antes era "/", ahora ""
     response_model=EmpleadoListResponse,
     summary="Listar todos los empleados",
     status_code=status.HTTP_200_OK,
@@ -135,7 +135,7 @@ async def get_empleados( # Endpoint para listar empleados con filtros opcionales
 #   4. Contrasena minima 8 chars: validator en EmpleadoCreate -> 422
 
 @router.post(
-    "/",
+    "",  
     response_model=EmpleadoResponse,
     summary="Crear nuevo empleado",
     status_code=status.HTTP_201_CREATED,
