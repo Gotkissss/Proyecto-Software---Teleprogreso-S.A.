@@ -15,6 +15,7 @@ import EquipoPage     from './pages/EquipoPage'
 import DashboardPage    from './pages/DashboardPage'
 import AlertasPage      from './pages/AlertasPage'
 import ReasignacionPage from './pages/ReasignacionPage'
+import EmpleadosPage    from './pages/EmpleadosPage'
 
 export default function App() {
   return (
@@ -52,6 +53,7 @@ export default function App() {
             <Route path="dashboard"    element={<DashboardPage />} />
             <Route path="alertas"      element={<AlertasPage />} />
             <Route path="reasignacion" element={<ReasignacionPage />} />
+            <Route path="empleados"    element={<EmpleadosPage />} />
           </Route>
 
           {/* ── 404 ──────────────────────────────────────── */}

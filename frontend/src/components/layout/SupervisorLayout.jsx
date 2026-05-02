@@ -27,6 +27,14 @@ const IconReasignar = () => (
     <polyline points="7 23 3 19 7 15" /><path d="M21 13v2a4 4 0 0 1-4 4H3" />
   </svg>
 )
+const IconEmpleados = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  </svg>
+)
 const IconMenu = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" />
@@ -40,14 +48,14 @@ const IconLogo = () => (
 )
 
 const NAV_ITEMS = [
-  { to: '/supervisor/dashboard',    label: 'Panel',     Icon: IconDashboard },
-  { to: '/supervisor/alertas',      label: 'Alertas',   Icon: IconAlertas },
-  { to: '/supervisor/reasignacion', label: 'Reasignar', Icon: IconReasignar },
+  { to: '/supervisor/dashboard',    label: 'Panel',      Icon: IconDashboard },
+  { to: '/supervisor/alertas',      label: 'Alertas',    Icon: IconAlertas },
+  { to: '/supervisor/reasignacion', label: 'Reasignar',  Icon: IconReasignar },
+  { to: '/supervisor/empleados',    label: 'Empleados',  Icon: IconEmpleados },
 ]
 
 export default function SupervisorLayout() {
   const { user, logoutUser } = useAuth()
-  const navigate = useNavigate()
 
   const displayName = user?.nombre || 'Supervisor'
 
