@@ -937,3 +937,72 @@
 .editSaveBtn svg { width: 15px; height: 15px; }
 .editSaveBtn:hover:not(:disabled) { background: var(--c-blue-hover); transform: translateY(-1px); }
 .editSaveBtn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+/* ── Ordenamiento por columna ────────────────────── */
+.thSortable {
+  cursor:      pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.thSortable:hover {
+  background: #EFF6FF;
+  color:      var(--c-blue);
+}
+
+.thSortable span:first-child {
+  display:     inline-flex;
+  align-items: center;
+  gap:         5px;
+}
+
+.th {
+  display:     table-cell;
+  padding:     12px 16px;
+  text-align:  left;
+  font-size:   .75rem;
+  font-weight: 700;
+  color:       var(--c-text-sub);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  white-space: nowrap;
+}
+
+/* Sobreescribe el .th para los sortables para que sea flex */
+.thSortable {
+  display: table-cell;
+}
+
+/* Wrapper interno del header para alinear texto + icono */
+.th > span,
+.thSortable > span {
+  display:     inline-flex;
+  align-items: center;
+  gap:         4px;
+}
+
+.sortIconNeutral {
+  display:    inline-flex;
+  color:      var(--c-text-sub);
+  opacity:    .4;
+  transition: opacity .15s;
+}
+.thSortable:hover .sortIconNeutral { opacity: .7; }
+
+.sortIconNeutral svg,
+.sortIconActive  svg {
+  width:  12px;
+  height: 12px;
+}
+
+.sortIconActive {
+  display: inline-flex;
+  color:   var(--c-blue);
+}
+
+/* SCRUM-75: Columna correo — separada de empleadoCell */
+.empleadoCorreo {
+  font-size: .82rem;
+  color:     var(--c-text-sub);
+  word-break: break-all;
+}

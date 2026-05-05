@@ -3,11 +3,12 @@
  * ---------------------------------------------------------------------------
  * Gestión de empleados para supervisor/admin.
  * Funcionalidades:
- *   - Tabla de empleados con búsqueda y filtro por rol
+ *   - Tabla con columnas: nombre, correo, rol, estado y fecha de contratación
+ *   - Filtros por rol y por estado; ordenamiento por columna
  *   - Botón "Editar" → panel lateral con formulario
  *   - Botón "Desactivar/Activar" → modal de confirmación
- *   - [SCRUM-65] Botón "Nuevo empleado" → PanelCrearEmpleado con validación client-side
- *   - [SCRUM-66] Integración POST /empleados, manejo correo duplicado y confirmación visual
+ *   - Botón "Nuevo empleado" → PanelCrearEmpleado con validación client-side
+ *   - Integración POST /empleados, manejo correo duplicado y confirmación visual
  * ---------------------------------------------------------------------------
  */
 
@@ -19,71 +20,15 @@ import styles from './EmpleadosPage.module.css'
 
 const USE_MOCK = false
 
-/* ── MOCK DATA (solo se usa si USE_MOCK = true) ──────────────── */
 const MOCK_EMPLEADOS = [
-  {
-    id_empleado: 1,
-    nombre: 'Carlos',
-    apellido: 'Administrador',
-    correo: 'admin@teleprogreso.com',
-    rol: 'admin',
-    estado: 'activo',
-    telefono: '5550-0001',
-    fecha_contratacion: '2020-01-15',
-  },
-  {
-    id_empleado: 2,
-    nombre: 'Juan',
-    apellido: 'Pérez García',
-    correo: 'tecnico@teleprogreso.com',
-    rol: 'tecnico',
-    estado: 'activo',
-    telefono: '5550-0002',
-    fecha_contratacion: '2022-06-01',
-  },
-  {
-    id_empleado: 3,
-    nombre: 'María',
-    apellido: 'López Ruiz',
-    correo: 'supervisora@teleprogreso.com',
-    rol: 'supervisor',
-    estado: 'activo',
-    telefono: '5550-0003',
-    fecha_contratacion: '2021-03-10',
-  },
-  {
-    id_empleado: 4,
-    nombre: 'Carlos',
-    apellido: 'Hernández',
-    correo: 'carlos.h@teleprogreso.com',
-    rol: 'tecnico',
-    estado: 'activo',
-    telefono: '5550-0004',
-    fecha_contratacion: '2023-01-20',
-  },
-  {
-    id_empleado: 5,
-    nombre: 'Ana',
-    apellido: 'Rodríguez Soto',
-    correo: 'ana.r@teleprogreso.com',
-    rol: 'tecnico',
-    estado: 'inactivo',
-    telefono: '5550-0005',
-    fecha_contratacion: '2022-09-15',
-  },
-  {
-    id_empleado: 6,
-    nombre: 'Roberto',
-    apellido: 'Gómez',
-    correo: 'roberto.g@teleprogreso.com',
-    rol: 'gerente',
-    estado: 'activo',
-    telefono: '5550-0006',
-    fecha_contratacion: '2019-07-01',
-  },
+  { id_empleado: 1, nombre: 'Carlos', apellido: 'Administrador', correo: 'admin@teleprogreso.com', rol: 'admin', estado: 'activo', telefono: '5550-0001', fecha_contratacion: '2020-01-15' },
+  { id_empleado: 2, nombre: 'Juan', apellido: 'Pérez García', correo: 'tecnico@teleprogreso.com', rol: 'tecnico', estado: 'activo', telefono: '5550-0002', fecha_contratacion: '2022-06-01' },
+  { id_empleado: 3, nombre: 'María', apellido: 'López Ruiz', correo: 'supervisora@teleprogreso.com', rol: 'supervisor', estado: 'activo', telefono: '5550-0003', fecha_contratacion: '2021-03-10' },
+  { id_empleado: 4, nombre: 'Carlos', apellido: 'Hernández', correo: 'carlos.h@teleprogreso.com', rol: 'tecnico', estado: 'activo', telefono: '5550-0004', fecha_contratacion: '2023-01-20' },
+  { id_empleado: 5, nombre: 'Ana', apellido: 'Rodríguez Soto', correo: 'ana.r@teleprogreso.com', rol: 'tecnico', estado: 'inactivo', telefono: '5550-0005', fecha_contratacion: '2022-09-15' },
+  { id_empleado: 6, nombre: 'Roberto', apellido: 'Gómez', correo: 'roberto.g@teleprogreso.com', rol: 'gerente', estado: 'activo', telefono: '5550-0006', fecha_contratacion: '2019-07-01' },
 ]
 
-/* ── Constantes del dominio ──────────────────────────────────── */
 const ROLES = ['admin', 'supervisor', 'tecnico', 'gerente']
 
 const ROL_LABEL = {
@@ -100,7 +45,6 @@ const ROL_VARIANT = {
   gerente:    'warning',
 }
 
-/* ── Iconos SVG ──────────────────────────────────────────────── */
 const IconEdit   = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -176,6 +120,22 @@ const IconUserPlus = () => (
     <line x1="23" y1="11" x2="17" y2="11"/>
   </svg>
 )
+const IconChevronUp   = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <polyline points="18 15 12 9 6 15"/>
+  </svg>
+)
+const IconChevronDown = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>
+)
+const IconChevronsUpDown = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <polyline points="7 15 12 20 17 15"/>
+    <polyline points="7 9 12 4 17 9"/>
+  </svg>
+)
 
 /* ═══════════════════════════════════════════════════════════════
    SCRUM-65 / SCRUM-66 — Panel Crear Empleado
@@ -194,63 +154,30 @@ const FORM_INICIAL = {
 
 function validarFormulario(form) {
   const errores = {}
-
-  // Nombre
-  if (!form.nombre.trim())
-    errores.nombre = 'El nombre es obligatorio.'
-  else if (form.nombre.trim().length < 2)
-    errores.nombre = 'El nombre debe tener al menos 2 caracteres.'
-
-  // Apellido
-  if (!form.apellido.trim())
-    errores.apellido = 'El apellido es obligatorio.'
-  else if (form.apellido.trim().length < 2)
-    errores.apellido = 'El apellido debe tener al menos 2 caracteres.'
-
-  // Correo
-  if (!form.correo.trim())
-    errores.correo = 'El correo electrónico es obligatorio.'
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.correo.trim()))
-    errores.correo = 'Ingresa un correo electrónico válido.'
-
-  // Teléfono (opcional)
+  if (!form.nombre.trim()) errores.nombre = 'El nombre es obligatorio.'
+  else if (form.nombre.trim().length < 2) errores.nombre = 'El nombre debe tener al menos 2 caracteres.'
+  if (!form.apellido.trim()) errores.apellido = 'El apellido es obligatorio.'
+  else if (form.apellido.trim().length < 2) errores.apellido = 'El apellido debe tener al menos 2 caracteres.'
+  if (!form.correo.trim()) errores.correo = 'El correo electrónico es obligatorio.'
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.correo.trim())) errores.correo = 'Ingresa un correo electrónico válido.'
   if (form.telefono.trim()) {
     const digitos = form.telefono.replace(/\D/g, '')
-    if (digitos.length < 7)
-      errores.telefono = 'El teléfono debe tener al menos 7 dígitos.'
-    else if (!/^[0-9+\-() ]+$/.test(form.telefono.trim()))
-      errores.telefono = 'Solo se permiten dígitos, espacios, +, - y ().'
+    if (digitos.length < 7) errores.telefono = 'El teléfono debe tener al menos 7 dígitos.'
+    else if (!/^[0-9+\-() ]+$/.test(form.telefono.trim())) errores.telefono = 'Solo se permiten dígitos, espacios, +, - y ().'
   }
-
-  // Contraseña
-  if (!form.contrasena)
-    errores.contrasena = 'La contraseña es obligatoria.'
-  else if (form.contrasena.length < 8)
-    errores.contrasena = 'La contraseña debe tener al menos 8 caracteres.'
-  else if (!/[A-Z]/.test(form.contrasena))
-    errores.contrasena = 'Debe contener al menos una letra mayúscula.'
-  else if (!/[a-z]/.test(form.contrasena))
-    errores.contrasena = 'Debe contener al menos una letra minúscula.'
-  else if (!/[0-9]/.test(form.contrasena))
-    errores.contrasena = 'Debe contener al menos un número.'
-
-  // Confirmar contraseña
-  if (!form.confirmar_contrasena)
-    errores.confirmar_contrasena = 'Confirma la contraseña.'
-  else if (form.contrasena !== form.confirmar_contrasena)
-    errores.confirmar_contrasena = 'Las contraseñas no coinciden.'
-
-  // Fecha de contratación
-  if (!form.fecha_contratacion)
-    errores.fecha_contratacion = 'La fecha de contratación es obligatoria.'
+  if (!form.contrasena) errores.contrasena = 'La contraseña es obligatoria.'
+  else if (form.contrasena.length < 8) errores.contrasena = 'La contraseña debe tener al menos 8 caracteres.'
+  else if (!/[A-Z]/.test(form.contrasena)) errores.contrasena = 'Debe contener al menos una letra mayúscula.'
+  else if (!/[a-z]/.test(form.contrasena)) errores.contrasena = 'Debe contener al menos una letra minúscula.'
+  else if (!/[0-9]/.test(form.contrasena)) errores.contrasena = 'Debe contener al menos un número.'
+  if (!form.confirmar_contrasena) errores.confirmar_contrasena = 'Confirma la contraseña.'
+  else if (form.contrasena !== form.confirmar_contrasena) errores.confirmar_contrasena = 'Las contraseñas no coinciden.'
+  if (!form.fecha_contratacion) errores.fecha_contratacion = 'La fecha de contratación es obligatoria.'
   else {
-    const hoy = new Date()
-    hoy.setHours(0, 0, 0, 0)
+    const hoy = new Date(); hoy.setHours(0,0,0,0)
     const fecha = new Date(form.fecha_contratacion + 'T12:00:00')
-    if (fecha > hoy)
-      errores.fecha_contratacion = 'La fecha no puede ser en el futuro.'
+    if (fecha > hoy) errores.fecha_contratacion = 'La fecha no puede ser en el futuro.'
   }
-
   return errores
 }
 
@@ -263,22 +190,19 @@ function getPasswordStrength(pass) {
   if (/[a-z]/.test(pass)) score++
   if (/[0-9]/.test(pass)) score++
   if (/[^A-Za-z0-9]/.test(pass)) score++
-
-  if (score <= 2) return { level: 1, label: 'Débil',   color: '#ef4444' }
-  if (score <= 4) return { level: 2, label: 'Media',   color: '#f97316' }
-  return              { level: 3, label: 'Fuerte',  color: '#16a34a' }
+  if (score <= 2) return { level: 1, label: 'Débil',  color: '#ef4444' }
+  if (score <= 4) return { level: 2, label: 'Media',  color: '#f97316' }
+  return              { level: 3, label: 'Fuerte', color: '#16a34a' }
 }
 
-/* ── Panel Crear Empleado ────────────────────────────────────── */
 function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
-  const [form,        setForm]        = useState(FORM_INICIAL)
-  const [errores,     setErrores]     = useState({})
-  const [cargando,    setCargando]    = useState(false)
+  const [form,          setForm]          = useState(FORM_INICIAL)
+  const [errores,       setErrores]       = useState({})
+  const [cargando,      setCargando]      = useState(false)
   const [errorServidor, setErrorServidor] = useState(null)
-  const [showPass,    setShowPass]    = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [tocados,     setTocados]     = useState({})
-
+  const [showPass,      setShowPass]      = useState(false)
+  const [showConfirm,   setShowConfirm]   = useState(false)
+  const [tocados,       setTocados]       = useState({})
   const strength = getPasswordStrength(form.contrasena)
 
   const handleChange = (campo, valor) => {
@@ -289,53 +213,32 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
       setErrores(prev => ({ ...prev, [campo]: nuevosErrores[campo] || null }))
     }
   }
-
   const handleBlur = (campo) => {
     setTocados(prev => ({ ...prev, [campo]: true }))
     const nuevosErrores = validarFormulario(form)
     setErrores(prev => ({ ...prev, [campo]: nuevosErrores[campo] || null }))
   }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     const todosTocados = Object.keys(FORM_INICIAL).reduce((acc, k) => ({ ...acc, [k]: true }), {})
     setTocados(todosTocados)
-
     const erroresValidacion = validarFormulario(form)
     setErrores(erroresValidacion)
-
     if (Object.keys(erroresValidacion).length > 0) return
-
     if (empleadosExistentes.some(e => e.correo.toLowerCase() === form.correo.trim().toLowerCase())) {
       setErrores(prev => ({ ...prev, correo: 'Este correo ya está registrado en el sistema.' }))
       return
     }
-
-    setCargando(true)
-    setErrorServidor(null)
-
+    setCargando(true); setErrorServidor(null)
     try {
       const payload = {
-        nombre:             form.nombre.trim(),
-        apellido:           form.apellido.trim(),
-        correo:             form.correo.trim().toLowerCase(),
-        telefono:           form.telefono.trim() || null,
-        rol:                form.rol,
-        contrasena:         form.contrasena,
-        fecha_contratacion: form.fecha_contratacion,
+        nombre: form.nombre.trim(), apellido: form.apellido.trim(),
+        correo: form.correo.trim().toLowerCase(), telefono: form.telefono.trim() || null,
+        rol: form.rol, contrasena: form.contrasena, fecha_contratacion: form.fecha_contratacion,
       }
-
       if (USE_MOCK) {
         await new Promise(r => setTimeout(r, 800))
-        const nuevoEmpleado = {
-          id_empleado:        Date.now(),
-          ...payload,
-          estado:             form.estado,
-          fecha_registro:     new Date().toISOString(),
-          ultimo_acceso:      null,
-        }
-        onCreado(nuevoEmpleado)
+        onCreado({ id_empleado: Date.now(), ...payload, estado: form.estado, fecha_registro: new Date().toISOString(), ultimo_acceso: null })
       } else {
         const { data } = await apiClient.post('/empleados', payload)
         onCreado(data)
@@ -343,48 +246,29 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
     } catch (err) {
       const status = err?.response?.status
       const detail = err?.response?.data?.detail
-
       if (status === 409) {
         setErrores(prev => ({ ...prev, correo: 'Este correo ya está registrado en el sistema.' }))
       } else if (status === 400 || status === 422) {
         if (Array.isArray(detail)) {
           const errBack = {}
-          detail.forEach(d => {
-            const campo = d.loc?.[d.loc.length - 1]
-            if (campo && campo in FORM_INICIAL) {
-              errBack[campo] = d.msg || d.message
-            }
-          })
-          if (Object.keys(errBack).length > 0) {
-            setErrores(prev => ({ ...prev, ...errBack }))
-            return
-          }
+          detail.forEach(d => { const campo = d.loc?.[d.loc.length - 1]; if (campo && campo in FORM_INICIAL) errBack[campo] = d.msg || d.message })
+          if (Object.keys(errBack).length > 0) { setErrores(prev => ({ ...prev, ...errBack })); return }
         }
         const msg = typeof detail === 'string' ? detail : ''
-        if (
-          msg.toLowerCase().includes('correo') ||
-          msg.toLowerCase().includes('email') ||
-          msg.toLowerCase().includes('duplicate') ||
-          msg.toLowerCase().includes('unique')
-        ) {
-          setErrores(prev => ({ ...prev, correo: 'Este correo ya está registrado en el sistema.' }))
-          return
+        if (msg.toLowerCase().includes('correo') || msg.toLowerCase().includes('email') || msg.toLowerCase().includes('duplicate') || msg.toLowerCase().includes('unique')) {
+          setErrores(prev => ({ ...prev, correo: 'Este correo ya está registrado en el sistema.' })); return
         }
         setErrorServidor(msg || 'Los datos enviados no son válidos.')
       } else {
         setErrorServidor('Error al conectar con el servidor. Intenta de nuevo.')
       }
-    } finally {
-      setCargando(false)
-    }
+    } finally { setCargando(false) }
   }
-
   const campoTieneError = (campo) => tocados[campo] && errores[campo]
 
   return (
     <div className={styles.panelOverlay} onClick={onCerrar}>
       <div className={styles.editPanel} onClick={e => e.stopPropagation()}>
-
         <div className={styles.editPanelHeader}>
           <div className={styles.editPanelHeaderLeft}>
             <div className={styles.editAvatar} style={{ background: '#dbeafe', color: '#2563eb' }}>
@@ -395,257 +279,93 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
               <p className={styles.editPanelSubtitle}>Completa todos los campos obligatorios</p>
             </div>
           </div>
-          <button className={styles.panelCloseBtn} onClick={onCerrar} aria-label="Cerrar panel">
-            <IconX />
-          </button>
+          <button className={styles.panelCloseBtn} onClick={onCerrar} aria-label="Cerrar panel"><IconX /></button>
         </div>
-
         {errorServidor && (
-          <div className={styles.editErrorBanner}>
-            <IconAlert />
-            <span>{errorServidor}</span>
-          </div>
+          <div className={styles.editErrorBanner}><IconAlert /><span>{errorServidor}</span></div>
         )}
-
         <form className={styles.editForm} onSubmit={handleSubmit} noValidate>
-
           <div className={styles.formSectionLabel}>Datos personales</div>
-
           <div className={styles.editFormGrid}>
             <div className={styles.editField}>
-              <label className={styles.editLabel}>
-                Nombre <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="text"
-                className={`${styles.editInput} ${campoTieneError('nombre') ? styles.editInputError : ''}`}
-                value={form.nombre}
-                onChange={e => handleChange('nombre', e.target.value)}
-                onBlur={() => handleBlur('nombre')}
-                disabled={cargando}
-                placeholder="Ej: Juan"
-                autoComplete="given-name"
-              />
-              {campoTieneError('nombre') && (
-                <p className={styles.editFieldError}>{errores.nombre}</p>
-              )}
+              <label className={styles.editLabel}>Nombre <span className={styles.required}>*</span></label>
+              <input type="text" className={`${styles.editInput} ${campoTieneError('nombre') ? styles.editInputError : ''}`} value={form.nombre} onChange={e => handleChange('nombre', e.target.value)} onBlur={() => handleBlur('nombre')} disabled={cargando} placeholder="Ej: Juan" autoComplete="given-name" />
+              {campoTieneError('nombre') && <p className={styles.editFieldError}>{errores.nombre}</p>}
             </div>
-
             <div className={styles.editField}>
-              <label className={styles.editLabel}>
-                Apellido <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="text"
-                className={`${styles.editInput} ${campoTieneError('apellido') ? styles.editInputError : ''}`}
-                value={form.apellido}
-                onChange={e => handleChange('apellido', e.target.value)}
-                onBlur={() => handleBlur('apellido')}
-                disabled={cargando}
-                placeholder="Ej: Pérez García"
-                autoComplete="family-name"
-              />
-              {campoTieneError('apellido') && (
-                <p className={styles.editFieldError}>{errores.apellido}</p>
-              )}
+              <label className={styles.editLabel}>Apellido <span className={styles.required}>*</span></label>
+              <input type="text" className={`${styles.editInput} ${campoTieneError('apellido') ? styles.editInputError : ''}`} value={form.apellido} onChange={e => handleChange('apellido', e.target.value)} onBlur={() => handleBlur('apellido')} disabled={cargando} placeholder="Ej: Pérez García" autoComplete="family-name" />
+              {campoTieneError('apellido') && <p className={styles.editFieldError}>{errores.apellido}</p>}
             </div>
           </div>
-
           <div className={styles.editField}>
-            <label className={styles.editLabel}>
-              Correo electrónico <span className={styles.required}>*</span>
-            </label>
-            <input
-              type="email"
-              className={`${styles.editInput} ${campoTieneError('correo') ? styles.editInputError : ''}`}
-              value={form.correo}
-              onChange={e => handleChange('correo', e.target.value)}
-              onBlur={() => handleBlur('correo')}
-              disabled={cargando}
-              placeholder="usuario@teleprogreso.com"
-              autoComplete="email"
-            />
-            {campoTieneError('correo') && (
-              <p className={styles.editFieldError}>{errores.correo}</p>
-            )}
+            <label className={styles.editLabel}>Correo electrónico <span className={styles.required}>*</span></label>
+            <input type="email" className={`${styles.editInput} ${campoTieneError('correo') ? styles.editInputError : ''}`} value={form.correo} onChange={e => handleChange('correo', e.target.value)} onBlur={() => handleBlur('correo')} disabled={cargando} placeholder="usuario@teleprogreso.com" autoComplete="email" />
+            {campoTieneError('correo') && <p className={styles.editFieldError}>{errores.correo}</p>}
           </div>
-
           <div className={styles.editField}>
             <label className={styles.editLabel}>Teléfono <span className={styles.optional}>(opcional)</span></label>
-            <input
-              type="tel"
-              className={`${styles.editInput} ${campoTieneError('telefono') ? styles.editInputError : ''}`}
-              value={form.telefono}
-              onChange={e => handleChange('telefono', e.target.value)}
-              onBlur={() => handleBlur('telefono')}
-              disabled={cargando}
-              placeholder="Ej: 5550-0001"
-              autoComplete="tel"
-            />
-            {campoTieneError('telefono') && (
-              <p className={styles.editFieldError}>{errores.telefono}</p>
-            )}
+            <input type="tel" className={`${styles.editInput} ${campoTieneError('telefono') ? styles.editInputError : ''}`} value={form.telefono} onChange={e => handleChange('telefono', e.target.value)} onBlur={() => handleBlur('telefono')} disabled={cargando} placeholder="Ej: 5550-0001" autoComplete="tel" />
+            {campoTieneError('telefono') && <p className={styles.editFieldError}>{errores.telefono}</p>}
           </div>
-
           <div className={styles.formSectionLabel}>Rol y estado</div>
-
           <div className={styles.editFormGrid}>
             <div className={styles.editField}>
-              <label className={styles.editLabel}>
-                Rol <span className={styles.required}>*</span>
-              </label>
-              <select
-                className={styles.editSelect}
-                value={form.rol}
-                onChange={e => handleChange('rol', e.target.value)}
-                disabled={cargando}
-              >
-                {ROLES.map(r => (
-                  <option key={r} value={r}>{ROL_LABEL[r]}</option>
-                ))}
+              <label className={styles.editLabel}>Rol <span className={styles.required}>*</span></label>
+              <select className={styles.editSelect} value={form.rol} onChange={e => handleChange('rol', e.target.value)} disabled={cargando}>
+                {ROLES.map(r => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
               </select>
             </div>
-
             <div className={styles.editField}>
-              <label className={styles.editLabel}>
-                Fecha de contratación <span className={styles.required}>*</span>
-              </label>
-              <input
-                type="date"
-                className={`${styles.editInput} ${campoTieneError('fecha_contratacion') ? styles.editInputError : ''}`}
-                value={form.fecha_contratacion}
-                onChange={e => handleChange('fecha_contratacion', e.target.value)}
-                onBlur={() => handleBlur('fecha_contratacion')}
-                disabled={cargando}
-                max={new Date().toISOString().split('T')[0]}
-              />
-              {campoTieneError('fecha_contratacion') && (
-                <p className={styles.editFieldError}>{errores.fecha_contratacion}</p>
-              )}
+              <label className={styles.editLabel}>Fecha de contratación <span className={styles.required}>*</span></label>
+              <input type="date" className={`${styles.editInput} ${campoTieneError('fecha_contratacion') ? styles.editInputError : ''}`} value={form.fecha_contratacion} onChange={e => handleChange('fecha_contratacion', e.target.value)} onBlur={() => handleBlur('fecha_contratacion')} disabled={cargando} max={new Date().toISOString().split('T')[0]} />
+              {campoTieneError('fecha_contratacion') && <p className={styles.editFieldError}>{errores.fecha_contratacion}</p>}
             </div>
           </div>
-
           <div className={styles.editField}>
             <label className={styles.editLabel}>Estado inicial</label>
             <div className={styles.estadoToggleGroup}>
               {['activo', 'inactivo'].map(est => (
-                <button
-                  key={est}
-                  type="button"
-                  className={`${styles.estadoToggleBtn} ${form.estado === est ? styles.estadoToggleBtnActive : ''} ${est === 'activo' ? styles.estadoToggleBtnActivo : styles.estadoToggleBtnInactivo}`}
-                  onClick={() => handleChange('estado', est)}
-                  disabled={cargando}
-                >
-                  <span className={styles.estadoToggleDot} />
-                  {est.charAt(0).toUpperCase() + est.slice(1)}
+                <button key={est} type="button" className={`${styles.estadoToggleBtn} ${form.estado === est ? styles.estadoToggleBtnActive : ''} ${est === 'activo' ? styles.estadoToggleBtnActivo : styles.estadoToggleBtnInactivo}`} onClick={() => handleChange('estado', est)} disabled={cargando}>
+                  <span className={styles.estadoToggleDot} />{est.charAt(0).toUpperCase() + est.slice(1)}
                 </button>
               ))}
             </div>
           </div>
-
           <div className={styles.formSectionLabel}>Contraseña de acceso</div>
-
           <div className={styles.editField}>
-            <label className={styles.editLabel}>
-              Contraseña <span className={styles.required}>*</span>
-            </label>
+            <label className={styles.editLabel}>Contraseña <span className={styles.required}>*</span></label>
             <div className={styles.passWrap}>
-              <input
-                type={showPass ? 'text' : 'password'}
-                className={`${styles.editInput} ${styles.editInputWithIcon} ${campoTieneError('contrasena') ? styles.editInputError : ''}`}
-                value={form.contrasena}
-                onChange={e => handleChange('contrasena', e.target.value)}
-                onBlur={() => handleBlur('contrasena')}
-                disabled={cargando}
-                placeholder="Mínimo 8 caracteres"
-                autoComplete="new-password"
-              />
-              <button
-                type="button"
-                className={styles.passEyeBtn}
-                onClick={() => setShowPass(v => !v)}
-                tabIndex={-1}
-                aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-              >
+              <input type={showPass ? 'text' : 'password'} className={`${styles.editInput} ${styles.editInputWithIcon} ${campoTieneError('contrasena') ? styles.editInputError : ''}`} value={form.contrasena} onChange={e => handleChange('contrasena', e.target.value)} onBlur={() => handleBlur('contrasena')} disabled={cargando} placeholder="Mínimo 8 caracteres" autoComplete="new-password" />
+              <button type="button" className={styles.passEyeBtn} onClick={() => setShowPass(v => !v)} tabIndex={-1} aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
                 {showPass ? <IconEyeOff /> : <IconEye />}
               </button>
             </div>
             {form.contrasena && (
               <div className={styles.strengthBar}>
                 <div className={styles.strengthSegments}>
-                  {[1, 2, 3].map(lvl => (
-                    <div
-                      key={lvl}
-                      className={styles.strengthSegment}
-                      style={{
-                        background: strength.level >= lvl ? strength.color : '#e2e8f0',
-                      }}
-                    />
-                  ))}
+                  {[1,2,3].map(lvl => <div key={lvl} className={styles.strengthSegment} style={{ background: strength.level >= lvl ? strength.color : '#e2e8f0' }} />)}
                 </div>
-                <span className={styles.strengthLabel} style={{ color: strength.color }}>
-                  {strength.label}
-                </span>
+                <span className={styles.strengthLabel} style={{ color: strength.color }}>{strength.label}</span>
               </div>
             )}
-            {campoTieneError('contrasena') && (
-              <p className={styles.editFieldError}>{errores.contrasena}</p>
-            )}
-            {!campoTieneError('contrasena') && (
-              <p className={styles.passHint}>
-                Mín. 8 caracteres, una mayúscula, una minúscula y un número.
-              </p>
-            )}
+            {campoTieneError('contrasena') && <p className={styles.editFieldError}>{errores.contrasena}</p>}
+            {!campoTieneError('contrasena') && <p className={styles.passHint}>Mín. 8 caracteres, una mayúscula, una minúscula y un número.</p>}
           </div>
-
           <div className={styles.editField}>
-            <label className={styles.editLabel}>
-              Confirmar contraseña <span className={styles.required}>*</span>
-            </label>
+            <label className={styles.editLabel}>Confirmar contraseña <span className={styles.required}>*</span></label>
             <div className={styles.passWrap}>
-              <input
-                type={showConfirm ? 'text' : 'password'}
-                className={`${styles.editInput} ${styles.editInputWithIcon} ${campoTieneError('confirmar_contrasena') ? styles.editInputError : ''}`}
-                value={form.confirmar_contrasena}
-                onChange={e => handleChange('confirmar_contrasena', e.target.value)}
-                onBlur={() => handleBlur('confirmar_contrasena')}
-                disabled={cargando}
-                placeholder="Repite la contraseña"
-                autoComplete="new-password"
-              />
-              <button
-                type="button"
-                className={styles.passEyeBtn}
-                onClick={() => setShowConfirm(v => !v)}
-                tabIndex={-1}
-                aria-label={showConfirm ? 'Ocultar confirmación' : 'Mostrar confirmación'}
-              >
+              <input type={showConfirm ? 'text' : 'password'} className={`${styles.editInput} ${styles.editInputWithIcon} ${campoTieneError('confirmar_contrasena') ? styles.editInputError : ''}`} value={form.confirmar_contrasena} onChange={e => handleChange('confirmar_contrasena', e.target.value)} onBlur={() => handleBlur('confirmar_contrasena')} disabled={cargando} placeholder="Repite la contraseña" autoComplete="new-password" />
+              <button type="button" className={styles.passEyeBtn} onClick={() => setShowConfirm(v => !v)} tabIndex={-1} aria-label={showConfirm ? 'Ocultar confirmación' : 'Mostrar confirmación'}>
                 {showConfirm ? <IconEyeOff /> : <IconEye />}
               </button>
             </div>
-            {campoTieneError('confirmar_contrasena') && (
-              <p className={styles.editFieldError}>{errores.confirmar_contrasena}</p>
-            )}
+            {campoTieneError('confirmar_contrasena') && <p className={styles.editFieldError}>{errores.confirmar_contrasena}</p>}
           </div>
-
           <div className={styles.editFormBtns}>
-            <button
-              type="button"
-              className={styles.editCancelBtn}
-              onClick={onCerrar}
-              disabled={cargando}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className={styles.editSaveBtn}
-              disabled={cargando}
-            >
-              {cargando
-                ? <><Spinner size="sm" color="white" /> Creando...</>
-                : <><IconUserPlus /> Crear empleado</>
-              }
+            <button type="button" className={styles.editCancelBtn} onClick={onCerrar} disabled={cargando}>Cancelar</button>
+            <button type="submit" className={styles.editSaveBtn} disabled={cargando}>
+              {cargando ? <><Spinner size="sm" color="white" /> Creando...</> : <><IconUserPlus /> Crear empleado</>}
             </button>
           </div>
         </form>
@@ -654,20 +374,16 @@ function PanelCrearEmpleado({ onCreado, onCerrar, empleadosExistentes }) {
   )
 }
 
-/* ── Modal de confirmación Desactivar/Activar ────────────────── */
 function ModalConfirmacion({ empleado, onConfirmar, onCancelar, cargando }) {
-  const esActivo   = empleado.estado === 'activo'
+  const esActivo    = empleado.estado === 'activo'
   const nuevoEstado = esActivo ? 'inactivo' : 'activo'
-
   return (
     <div className={styles.modalOverlay} onClick={onCancelar}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <div className={`${styles.modalIconWrap} ${esActivo ? styles.modalIconDanger : styles.modalIconSuccess}`}>
           {esActivo ? <IconAlert /> : <IconCheck />}
         </div>
-        <h3 className={styles.modalTitle}>
-          {esActivo ? 'Desactivar empleado' : 'Activar empleado'}
-        </h3>
+        <h3 className={styles.modalTitle}>{esActivo ? 'Desactivar empleado' : 'Activar empleado'}</h3>
         <p className={styles.modalDesc}>
           {esActivo
             ? <><strong>{empleado.nombre} {empleado.apellido}</strong> no podrá iniciar sesión mientras esté inactivo.</>
@@ -675,18 +391,9 @@ function ModalConfirmacion({ empleado, onConfirmar, onCancelar, cargando }) {
           }
         </p>
         <div className={styles.modalBtns}>
-          <button className={styles.modalCancelBtn} onClick={onCancelar} disabled={cargando}>
-            Cancelar
-          </button>
-          <button
-            className={`${styles.modalConfirmBtn} ${esActivo ? styles.modalConfirmDanger : styles.modalConfirmSuccess}`}
-            onClick={() => onConfirmar(empleado.id_empleado, nuevoEstado)}
-            disabled={cargando}
-          >
-            {cargando
-              ? <><Spinner size="sm" color="white" /> Procesando...</>
-              : esActivo ? 'Sí, desactivar' : 'Sí, activar'
-            }
+          <button className={styles.modalCancelBtn} onClick={onCancelar} disabled={cargando}>Cancelar</button>
+          <button className={`${styles.modalConfirmBtn} ${esActivo ? styles.modalConfirmDanger : styles.modalConfirmSuccess}`} onClick={() => onConfirmar(empleado.id_empleado, nuevoEstado)} disabled={cargando}>
+            {cargando ? <><Spinner size="sm" color="white" /> Procesando...</> : esActivo ? 'Sí, desactivar' : 'Sí, activar'}
           </button>
         </div>
       </div>
@@ -694,74 +401,46 @@ function ModalConfirmacion({ empleado, onConfirmar, onCancelar, cargando }) {
   )
 }
 
-/* ── Panel de edición ────────────────────────────────────────── */
 function PanelEditar({ empleado, onGuardar, onCerrar, cargando, errorMsg }) {
-  const [form, setForm] = useState({
-    nombre:   empleado.nombre   ?? '',
-    apellido: empleado.apellido ?? '',
-    correo:   empleado.correo   ?? '',
-    telefono: empleado.telefono ?? '',
-    rol:      empleado.rol      ?? 'tecnico',
-  })
+  const [form, setForm] = useState({ nombre: empleado.nombre ?? '', apellido: empleado.apellido ?? '', correo: empleado.correo ?? '', telefono: empleado.telefono ?? '', rol: empleado.rol ?? 'tecnico' })
   const [errores, setErrores] = useState({})
-
-  const handleChange = (campo, valor) => {
-    setForm(prev => ({ ...prev, [campo]: valor }))
-    if (errores[campo]) setErrores(prev => ({ ...prev, [campo]: null }))
-  }
-
+  const handleChange = (campo, valor) => { setForm(prev => ({ ...prev, [campo]: valor })); if (errores[campo]) setErrores(prev => ({ ...prev, [campo]: null })) }
   const validar = () => {
     const e = {}
     if (!form.nombre.trim())   e.nombre   = 'El nombre es obligatorio.'
     if (!form.apellido.trim()) e.apellido  = 'El apellido es obligatorio.'
     if (!form.correo.trim())   e.correo    = 'El correo es obligatorio.'
-    if (form.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.correo))
-      e.correo = 'Ingresa un correo válido.'
-    if (form.telefono && !/^[0-9+\-() ]{7,}$/.test(form.telefono.trim()))
-      e.telefono = 'Teléfono inválido (mín. 7 dígitos).'
+    if (form.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.correo)) e.correo = 'Ingresa un correo válido.'
+    if (form.telefono && !/^[0-9+\-() ]{7,}$/.test(form.telefono.trim())) e.telefono = 'Teléfono inválido (mín. 7 dígitos).'
     setErrores(e)
     return Object.keys(e).length === 0
   }
-
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!validar()) return
     const cambios = {}
-    if (form.nombre.trim()   !== empleado.nombre)    cambios.nombre   = form.nombre.trim()
-    if (form.apellido.trim() !== empleado.apellido)  cambios.apellido = form.apellido.trim()
-    if (form.correo.trim()   !== empleado.correo)    cambios.correo   = form.correo.trim()
-    if (form.rol             !== empleado.rol)       cambios.rol      = form.rol
-    if (form.telefono.trim() !== (empleado.telefono ?? ''))
-      cambios.telefono = form.telefono.trim() || null
+    if (form.nombre.trim()   !== empleado.nombre)              cambios.nombre   = form.nombre.trim()
+    if (form.apellido.trim() !== empleado.apellido)            cambios.apellido = form.apellido.trim()
+    if (form.correo.trim()   !== empleado.correo)              cambios.correo   = form.correo.trim()
+    if (form.rol             !== empleado.rol)                 cambios.rol      = form.rol
+    if (form.telefono.trim() !== (empleado.telefono ?? ''))    cambios.telefono = form.telefono.trim() || null
     if (Object.keys(cambios).length === 0) { onCerrar(); return }
     onGuardar(empleado.id_empleado, cambios)
   }
-
   return (
     <div className={styles.panelOverlay} onClick={onCerrar}>
       <div className={styles.editPanel} onClick={e => e.stopPropagation()}>
         <div className={styles.editPanelHeader}>
           <div className={styles.editPanelHeaderLeft}>
-            <div className={styles.editAvatar}>
-              {empleado.nombre[0]?.toUpperCase()}{empleado.apellido[0]?.toUpperCase()}
-            </div>
+            <div className={styles.editAvatar}>{empleado.nombre[0]?.toUpperCase()}{empleado.apellido[0]?.toUpperCase()}</div>
             <div>
               <h2 className={styles.editPanelTitle}>Editar empleado</h2>
               <p className={styles.editPanelSubtitle}>ID #{empleado.id_empleado} — {empleado.correo}</p>
             </div>
           </div>
-          <button className={styles.panelCloseBtn} onClick={onCerrar} aria-label="Cerrar panel">
-            <IconX />
-          </button>
+          <button className={styles.panelCloseBtn} onClick={onCerrar} aria-label="Cerrar panel"><IconX /></button>
         </div>
-
-        {errorMsg && (
-          <div className={styles.editErrorBanner}>
-            <IconAlert />
-            <span>{errorMsg}</span>
-          </div>
-        )}
-
+        {errorMsg && <div className={styles.editErrorBanner}><IconAlert /><span>{errorMsg}</span></div>}
         <form className={styles.editForm} onSubmit={handleSubmit} noValidate>
           <div className={styles.editFormGrid}>
             <div className={styles.editField}>
@@ -812,6 +491,8 @@ export default function EmpleadosPage() {
   const [error,          setError]          = useState(null)
   const [busqueda,       setBusqueda]       = useState('')
   const [filtroRol,      setFiltroRol]      = useState('todos')
+  const [filtroEstado,   setFiltroEstado]   = useState('todos')   // SCRUM-75
+  const [sortConfig,     setSortConfig]     = useState({ key: null, dir: 'asc' }) // SCRUM-75
 
   const [empleadoEditar, setEmpleadoEditar] = useState(null)
   const [editCargando,   setEditCargando]   = useState(false)
@@ -833,40 +514,32 @@ export default function EmpleadosPage() {
 
   useEffect(() => () => clearTimeout(successTimer.current), [])
 
-  /* Carga inicial */
   useEffect(() => {
     const fetchEmpleados = async () => {
-      setLoading(true)
-      setError(null)
+      setLoading(true); setError(null)
       try {
         if (USE_MOCK) {
           await new Promise(r => setTimeout(r, 500))
           setEmpleados(MOCK_EMPLEADOS)
         } else {
-          // El backend devuelve { total, empleados: [...] } envuelto en EmpleadoListResponse
           const { data } = await apiClient.get('/empleados')
           setEmpleados(Array.isArray(data) ? data : (data?.empleados ?? []))
         }
       } catch (err) {
         setError(err?.response?.data?.detail || 'No se pudieron cargar los empleados.')
-      } finally {
-        setLoading(false)
-      }
+      } finally { setLoading(false) }
     }
     fetchEmpleados()
   }, [])
 
-  /* SCRUM-66: Callback tras crear empleado exitosamente */
   const handleEmpleadoCreado = (nuevoEmpleado) => {
     setEmpleados(prev => [nuevoEmpleado, ...prev])
     setMostrarCrear(false)
     mostrarExito(`Empleado ${nuevoEmpleado.nombre} ${nuevoEmpleado.apellido} creado correctamente.`)
   }
 
-  /* Guardar edición */
   const handleGuardarEdicion = async (id, cambios) => {
-    setEditCargando(true)
-    setEditError(null)
+    setEditCargando(true); setEditError(null)
     try {
       if (!USE_MOCK) {
         const { data } = await apiClient.patch(`/empleados/${id}`, cambios)
@@ -879,17 +552,10 @@ export default function EmpleadosPage() {
       mostrarExito('Empleado actualizado correctamente.')
     } catch (err) {
       const detail = err?.response?.data?.detail
-      setEditError(
-        Array.isArray(detail)
-          ? detail.map(d => d.message || d.msg).join(', ')
-          : detail || 'Error al guardar los cambios.'
-      )
-    } finally {
-      setEditCargando(false)
-    }
+      setEditError(Array.isArray(detail) ? detail.map(d => d.message || d.msg).join(', ') : detail || 'Error al guardar los cambios.')
+    } finally { setEditCargando(false) }
   }
 
-  /* Toggle estado — usa el endpoint correcto PATCH /empleados/{id}/estado */
   const handleToggleEstado = async (id, nuevoEstado) => {
     setToggleCargando(true)
     try {
@@ -900,28 +566,61 @@ export default function EmpleadosPage() {
         await new Promise(r => setTimeout(r, 600))
         setEmpleados(prev => prev.map(e => e.id_empleado === id ? { ...e, estado: nuevoEstado } : e))
       }
-      const accion = nuevoEstado === 'activo' ? 'activado' : 'desactivado'
-      mostrarExito(`Empleado ${accion} correctamente.`)
+      mostrarExito(`Empleado ${nuevoEstado === 'activo' ? 'activado' : 'desactivado'} correctamente.`)
       setEmpleadoToggle(null)
     } catch (err) {
       setError(err?.response?.data?.detail || 'Error al cambiar el estado.')
       setEmpleadoToggle(null)
-    } finally {
-      setToggleCargando(false)
-    }
+    } finally { setToggleCargando(false) }
   }
 
-  /* Empleados filtrados */
-  const empleadosFiltrados = empleados.filter(e => {
-    const texto = busqueda.toLowerCase()
-    const coincideBusqueda =
-      !texto ||
-      e.nombre.toLowerCase().includes(texto)   ||
-      e.apellido.toLowerCase().includes(texto) ||
-      e.correo.toLowerCase().includes(texto)
-    const coincideRol = filtroRol === 'todos' || e.rol === filtroRol
-    return coincideBusqueda && coincideRol
-  })
+  // SCRUM-75: Ordenamiento por columna
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      dir: prev.key === key && prev.dir === 'asc' ? 'desc' : 'asc',
+    }))
+  }
+
+  const SortIcon = ({ colKey }) => {
+    if (sortConfig.key !== colKey) return <span className={styles.sortIconNeutral}><IconChevronsUpDown /></span>
+    return sortConfig.dir === 'asc'
+      ? <span className={styles.sortIconActive}><IconChevronUp /></span>
+      : <span className={styles.sortIconActive}><IconChevronDown /></span>
+  }
+
+  // SCRUM-74 + SCRUM-75: filtrado y ordenamiento
+  const empleadosFiltrados = (() => {
+    let lista = empleados.filter(e => {
+      const texto = busqueda.toLowerCase()
+      const coincideBusqueda =
+        !texto ||
+        e.nombre.toLowerCase().includes(texto)   ||
+        e.apellido.toLowerCase().includes(texto) ||
+        e.correo.toLowerCase().includes(texto)
+      const coincideRol    = filtroRol    === 'todos' || e.rol    === filtroRol
+      const coincideEstado = filtroEstado === 'todos' || e.estado === filtroEstado
+      return coincideBusqueda && coincideRol && coincideEstado
+    })
+
+    if (sortConfig.key) {
+      lista = [...lista].sort((a, b) => {
+        let valA, valB
+        if (sortConfig.key === 'nombre_completo') {
+          valA = `${a.nombre} ${a.apellido}`.toLowerCase()
+          valB = `${b.nombre} ${b.apellido}`.toLowerCase()
+        } else {
+          valA = String(a[sortConfig.key] ?? '').toLowerCase()
+          valB = String(b[sortConfig.key] ?? '').toLowerCase()
+        }
+        if (valA < valB) return sortConfig.dir === 'asc' ? -1 : 1
+        if (valA > valB) return sortConfig.dir === 'asc' ?  1 : -1
+        return 0
+      })
+    }
+
+    return lista
+  })()
 
   const totalActivos   = empleados.filter(e => e.estado === 'activo').length
   const totalInactivos = empleados.filter(e => e.estado === 'inactivo').length
@@ -936,11 +635,7 @@ export default function EmpleadosPage() {
   }
 
   if (error && empleados.length === 0) {
-    return (
-      <div className={styles.center}>
-        <p className={styles.errorText}>{error}</p>
-      </div>
-    )
+    return <div className={styles.center}><p className={styles.errorText}>{error}</p></div>
   }
 
   return (
@@ -956,27 +651,19 @@ export default function EmpleadosPage() {
             )}
           </p>
         </div>
-
-        <button
-          className={styles.btnNuevoEmpleado}
-          onClick={() => setMostrarCrear(true)}
-        >
-          <IconPlus />
-          <span>Nuevo empleado</span>
+        <button className={styles.btnNuevoEmpleado} onClick={() => setMostrarCrear(true)}>
+          <IconPlus /><span>Nuevo empleado</span>
         </button>
       </div>
 
       {successMsg && (
-        <div className={styles.successBanner}>
-          <IconCheck />
-          <span>{successMsg}</span>
-        </div>
+        <div className={styles.successBanner}><IconCheck /><span>{successMsg}</span></div>
       )}
-
       {error && empleados.length > 0 && (
         <div className={styles.errorBanner}>{error}</div>
       )}
 
+      {/* SCRUM-75: Toolbar con búsqueda + filtro rol + filtro estado */}
       <div className={styles.toolbar}>
         <div className={styles.searchWrap}>
           <span className={styles.searchIcon}><IconSearch /></span>
@@ -994,10 +681,14 @@ export default function EmpleadosPage() {
           )}
         </div>
         <div className={styles.filters}>
-          <label className={styles.filterLabel}>Filtrar por rol:</label>
           <select className={styles.filterSelect} value={filtroRol} onChange={e => setFiltroRol(e.target.value)}>
             <option value="todos">Todos los roles</option>
             {ROLES.map(r => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
+          </select>
+          <select className={styles.filterSelect} value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}>
+            <option value="todos">Todos los estados</option>
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
           </select>
         </div>
       </div>
@@ -1006,12 +697,12 @@ export default function EmpleadosPage() {
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}><IconUser /></div>
           <p className={styles.emptyMsg}>
-            {busqueda || filtroRol !== 'todos'
+            {busqueda || filtroRol !== 'todos' || filtroEstado !== 'todos'
               ? 'No se encontraron empleados con esos criterios.'
               : 'No hay empleados registrados.'}
           </p>
-          {(busqueda || filtroRol !== 'todos') && (
-            <button className={styles.emptyResetBtn} onClick={() => { setBusqueda(''); setFiltroRol('todos') }}>
+          {(busqueda || filtroRol !== 'todos' || filtroEstado !== 'todos') && (
+            <button className={styles.emptyResetBtn} onClick={() => { setBusqueda(''); setFiltroRol('todos'); setFiltroEstado('todos') }}>
               Limpiar filtros
             </button>
           )}
@@ -1019,13 +710,24 @@ export default function EmpleadosPage() {
       ) : (
         <div className={styles.tableWrapper}>
           <table className={styles.table}>
+            {/* SCRUM-75: Headers con ordenamiento */}
             <thead className={styles.thead}>
               <tr>
-                <th className={styles.th}>Empleado</th>
-                <th className={styles.th}>Rol</th>
-                <th className={styles.th}>Contacto</th>
-                <th className={styles.th}>Contratación</th>
-                <th className={styles.th}>Estado</th>
+                <th className={`${styles.th} ${styles.thSortable}`} onClick={() => handleSort('nombre_completo')}>
+                  <span>Empleado</span><SortIcon colKey="nombre_completo" />
+                </th>
+                <th className={`${styles.th} ${styles.thSortable}`} onClick={() => handleSort('correo')}>
+                  <span>Correo</span><SortIcon colKey="correo" />
+                </th>
+                <th className={`${styles.th} ${styles.thSortable}`} onClick={() => handleSort('rol')}>
+                  <span>Rol</span><SortIcon colKey="rol" />
+                </th>
+                <th className={`${styles.th} ${styles.thSortable}`} onClick={() => handleSort('estado')}>
+                  <span>Estado</span><SortIcon colKey="estado" />
+                </th>
+                <th className={`${styles.th} ${styles.thSortable}`} onClick={() => handleSort('fecha_contratacion')}>
+                  <span>Contratación</span><SortIcon colKey="fecha_contratacion" />
+                </th>
                 <th className={`${styles.th} ${styles.thAcciones}`}>Acciones</th>
               </tr>
             </thead>
@@ -1034,34 +736,36 @@ export default function EmpleadosPage() {
                 const esActivo = emp.estado === 'activo'
                 return (
                   <tr key={emp.id_empleado} className={`${styles.tr} ${!esActivo ? styles.trInactivo : ''}`}>
+                    {/* SCRUM-74: Nombre */}
                     <td className={styles.td}>
                       <div className={styles.empleadoCell}>
                         <div className={`${styles.avatar} ${!esActivo ? styles.avatarInactivo : ''}`}>
                           {emp.nombre[0]?.toUpperCase()}{emp.apellido[0]?.toUpperCase()}
                         </div>
-                        <div className={styles.empleadoInfo}>
-                          <span className={styles.empleadoNombre}>{emp.nombre} {emp.apellido}</span>
-                          <span className={styles.empleadoCorreo}>{emp.correo}</span>
-                        </div>
+                        <span className={styles.empleadoNombre}>{emp.nombre} {emp.apellido}</span>
                       </div>
                     </td>
+                    {/* SCRUM-74: Correo */}
+                    <td className={styles.td}>
+                      <span className={styles.empleadoCorreo}>{emp.correo}</span>
+                    </td>
+                    {/* SCRUM-74: Rol */}
                     <td className={styles.td}>
                       <Badge label={ROL_LABEL[emp.rol] ?? emp.rol} variant={ROL_VARIANT[emp.rol] ?? 'muted'} />
                     </td>
+                    {/* SCRUM-74: Estado */}
                     <td className={styles.td}>
-                      <span className={styles.telefonoText}>{emp.telefono || <span className={styles.sinDato}>—</span>}</span>
+                      <span className={`${styles.estadoBadge} ${esActivo ? styles.estadoActivo : styles.estadoInactivo}`}>
+                        <span className={styles.estadoDot} />
+                        {esActivo ? 'Activo' : 'Inactivo'}
+                      </span>
                     </td>
+                    {/* SCRUM-74: Fecha de contratación */}
                     <td className={styles.td}>
                       <span className={styles.fechaText}>
                         {emp.fecha_contratacion
                           ? new Date(emp.fecha_contratacion + 'T12:00:00').toLocaleDateString('es-GT', { day: '2-digit', month: 'short', year: 'numeric' })
                           : <span className={styles.sinDato}>—</span>}
-                      </span>
-                    </td>
-                    <td className={styles.td}>
-                      <span className={`${styles.estadoBadge} ${esActivo ? styles.estadoActivo : styles.estadoInactivo}`}>
-                        <span className={styles.estadoDot} />
-                        {esActivo ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
                     <td className={`${styles.td} ${styles.tdAcciones}`}>
@@ -1089,30 +793,13 @@ export default function EmpleadosPage() {
       )}
 
       {mostrarCrear && (
-        <PanelCrearEmpleado
-          onCreado={handleEmpleadoCreado}
-          onCerrar={() => setMostrarCrear(false)}
-          empleadosExistentes={empleados}
-        />
+        <PanelCrearEmpleado onCreado={handleEmpleadoCreado} onCerrar={() => setMostrarCrear(false)} empleadosExistentes={empleados} />
       )}
-
       {empleadoEditar && (
-        <PanelEditar
-          empleado={empleadoEditar}
-          onGuardar={handleGuardarEdicion}
-          onCerrar={() => { setEmpleadoEditar(null); setEditError(null) }}
-          cargando={editCargando}
-          errorMsg={editError}
-        />
+        <PanelEditar empleado={empleadoEditar} onGuardar={handleGuardarEdicion} onCerrar={() => { setEmpleadoEditar(null); setEditError(null) }} cargando={editCargando} errorMsg={editError} />
       )}
-
       {empleadoToggle && (
-        <ModalConfirmacion
-          empleado={empleadoToggle}
-          onConfirmar={handleToggleEstado}
-          onCancelar={() => setEmpleadoToggle(null)}
-          cargando={toggleCargando}
-        />
+        <ModalConfirmacion empleado={empleadoToggle} onConfirmar={handleToggleEstado} onCancelar={() => setEmpleadoToggle(null)} cargando={toggleCargando} />
       )}
     </div>
   )
