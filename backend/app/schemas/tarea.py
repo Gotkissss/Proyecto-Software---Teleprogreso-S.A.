@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
-from enum import Enum
+from enum import Enums
 
 
 # 🔹 ENUMS (alineados a la lógica del sistema)
@@ -42,9 +42,10 @@ class TareaResponse(BaseModel):
     estado_tarea: str
     prioridad: str
     fecha_asignacion: Optional[datetime] = None
+    tecnico: Optional[TecnicoResponse] = None
 
     class Config:
-        from_attributes = True  # 🔥 Pydantic v2 (reemplaza orm_mode)
+        from_attributes = True
 
 
 # 🔹 UPDATE ESTADO (PATCH /tareas/{id}/estado)
@@ -55,3 +56,10 @@ class TareaUpdateEstado(BaseModel):
 # 🔹 REASIGNAR (PATCH /tareas/{id}/reasignar)
 class TareaReasignar(BaseModel):
     id_tecnico: int
+
+class TecnicoResponse(BaseModel):
+    id_empleado: int
+    nombre: str
+
+    class Config:
+        from_attributes = True

@@ -20,6 +20,7 @@ from typing import Annotated, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.api.deps import (
     get_current_empleado,
@@ -45,19 +46,20 @@ router = APIRouter(prefix="/tareas", tags=["Tareas"])
 
 @router.get(
     "/",
+    response_model=List[TareaResponse],
     summary="Listar tareas",
     status_code=status.HTTP_200_OK,
 )
 async def get_tareas(
     db: Annotated[AsyncSession, Depends(get_db)],
     _current_user: Annotated[Empleado, Depends(get_current_empleado)],
-    estado: Optional[str] = Query(None, description="Filtrar por estado de la tarea"),
-    id_tecnico: Optional[int] = Query(None, description="Filtrar por técnico asignado"),
+    estado: Optional[str] = Query(None),
+    id_tecnico: Optional[int] = Query(None),
 ):
-    """
-    Retorna la lista de tareas con el técnico asignado incluido como objeto.
-    """
-    query = select(Tarea)
+    query = (
+        select(Tarea)
+        .options(selectinload(Tarea.empleados).selectinload(EmpleadoTarea.empleado))
+    )
 
     if estado:
         query = query.where(Tarea.estado_tarea == estado)
@@ -70,7 +72,6 @@ async def get_tareas(
     for tarea in tareas:
         tecnico = None
 
-        # 🔹 Obtener técnico asignado (si existe)
         if tarea.empleados:
             emp = tarea.empleados[0].empleado
             tecnico = {
@@ -78,23 +79,23 @@ async def get_tareas(
                 "nombre": f"{emp.nombre} {emp.apellido}",
             }
 
-        # 🔹 Aplicar filtro por técnico
         if id_tecnico and (not tecnico or tecnico["id_empleado"] != id_tecnico):
             continue
 
-        tareas_response.append({
-            "id_tarea": tarea.id_tarea,
-            "titulo": tarea.titulo,
-            "descripcion": tarea.descripcion,
-            "direccion_servicio": tarea.direccion_servicio,
-            "estado_tarea": tarea.estado_tarea,
-            "prioridad": tarea.prioridad,
-            "fecha_asignacion": tarea.fecha_asignacion,
-            "tecnico": tecnico,
-        })
+        tareas_response.append(
+            TareaResponse(
+                id_tarea=tarea.id_tarea,
+                titulo=tarea.titulo,
+                descripcion=tarea.descripcion,
+                direccion_servicio=tarea.direccion_servicio,
+                estado_tarea=tarea.estado_tarea,
+                prioridad=tarea.prioridad,
+                fecha_asignacion=tarea.fecha_asignacion,
+                tecnico=tecnico,
+            )
+        )
 
     return tareas_response
-
 
 # POST /tareas/
 #Tiene unicamente  acceso admin y supervisor 
