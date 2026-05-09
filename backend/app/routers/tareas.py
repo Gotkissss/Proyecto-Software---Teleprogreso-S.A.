@@ -66,7 +66,6 @@ async def _contar_tareas_activas(db: AsyncSession, id_empleado: int) -> int:
 
 
 # ─── GET /tareas/ ─────────────────────────────────────────────────────────────
-# Historia 4 — Gualim: devuelve el técnico asignado como objeto anidado.
 # Acceso: cualquier empleado autenticado.
 
 @router.get(
@@ -124,7 +123,6 @@ async def get_tareas(
 
 
 # ─── POST /tareas/ ────────────────────────────────────────────────────────────
-# Historia 5 — Gualim: valida que el técnico asignado tenga < 3 tareas activas.
 # Acceso: admin y supervisor.
 
 @router.post(
@@ -149,7 +147,7 @@ async def create_tarea(
 
     Roles: admin, supervisor.
     """
-    # ── Validación de límite de carga (Historia 5) ──────────────────────────
+    # ── Validación de límite de carga ──────────────────────────
     if tarea.id_tecnico:
         # Verificar que el técnico existe y es un técnico activo
         result_tec = await db.execute(
