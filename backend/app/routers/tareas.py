@@ -45,24 +45,17 @@ router = APIRouter(prefix="/tareas", tags=["Tareas"])
 
 @router.get(
     "/",
-    response_model=List[TareaResponse],
     summary="Listar tareas",
     status_code=status.HTTP_200_OK,
 )
 async def get_tareas(
     db: Annotated[AsyncSession, Depends(get_db)],
-    # Proteccion JWT: cualquier rol autenticado puede consultar tareas
     _current_user: Annotated[Empleado, Depends(get_current_empleado)],
     estado: Optional[str] = Query(None, description="Filtrar por estado de la tarea"),
     id_tecnico: Optional[int] = Query(None, description="Filtrar por técnico asignado"),
 ):
     """
-    Retorna la lista de tareas con filtros opcionales.
-
-    - Cualquier empleado autenticado puede listar tareas.
-    - Se puede filtrar por estado (pendiente, en_progreso, completado, cancelado).
-    - Se puede filtrar por técnico asignado.
-    - Requiere token JWT válido.
+    Retorna la lista de tareas con el técnico asignado incluido como objeto.
     """
     query = select(Tarea)
 
@@ -72,15 +65,35 @@ async def get_tareas(
     result = await db.execute(query)
     tareas = result.scalars().all()
 
-    # Filtro adicional por tecnico (a nivel de relacion)
-    if id_tecnico:
-        tareas = [
-            t for t in tareas
-            if any(et.id_empleado == id_tecnico for et in t.empleados)
-        ]
+    tareas_response = []
 
-    return tareas
+    for tarea in tareas:
+        tecnico = None
 
+        # 🔹 Obtener técnico asignado (si existe)
+        if tarea.empleados:
+            emp = tarea.empleados[0].empleado
+            tecnico = {
+                "id_empleado": emp.id_empleado,
+                "nombre": f"{emp.nombre} {emp.apellido}",
+            }
+
+        # 🔹 Aplicar filtro por técnico
+        if id_tecnico and (not tecnico or tecnico["id_empleado"] != id_tecnico):
+            continue
+
+        tareas_response.append({
+            "id_tarea": tarea.id_tarea,
+            "titulo": tarea.titulo,
+            "descripcion": tarea.descripcion,
+            "direccion_servicio": tarea.direccion_servicio,
+            "estado_tarea": tarea.estado_tarea,
+            "prioridad": tarea.prioridad,
+            "fecha_asignacion": tarea.fecha_asignacion,
+            "tecnico": tecnico,
+        })
+
+    return tareas_response
 
 
 # POST /tareas/
