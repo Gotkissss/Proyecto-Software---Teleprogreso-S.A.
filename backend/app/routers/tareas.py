@@ -5,11 +5,12 @@ Router de Tareas — Teleprogreso S.A.
 Este archivo gestiona el ciclo de vida de las tareas/ordenes de servicio.
 
 Se tiene el siguiente control de acceso por rol:
-  - GET    /tareas/          = admin, supervisor, gerente, tecnico (todos los autenticados)
-  - POST   /tareas/          = admin, supervisor  (solo pueden crear tareas con permisos)
-  - PATCH  /tareas/{id}/estado    = admin, supervisor
-  - PATCH  /tareas/{id}/reasignar = admin, supervisor
-  - PATCH  /tareas/{id}/iniciar   = tecnico, admin, supervisor (el asignado inicia su tarea)
+  - GET    /tareas/                   = admin, supervisor, gerente, tecnico (todos los autenticados)
+  - POST   /tareas/                   = admin, supervisor  (solo pueden crear tareas con permisos)
+  - PATCH  /tareas/{id}/estado        = admin, supervisor
+  - PATCH  /tareas/{id}/reasignar     = admin, supervisor
+  - PATCH  /tareas/{id}/iniciar       = tecnico, admin, supervisor (el asignado inicia su tarea)
+
 
 Requiere token JWT valido en Authorization: Bearer <token>.
 """
@@ -18,7 +19,7 @@ from datetime import date
 from typing import Annotated, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -40,9 +41,33 @@ from app.schemas.tarea import (
 
 router = APIRouter(prefix="/tareas", tags=["Tareas"])
 
+# Estados que cuentan como "tareas activas" para el límite de carga
+ESTADOS_ACTIVOS = ("pendiente", "en_progreso")
+LIMITE_TAREAS_ACTIVAS = 3
 
-# GET /tareas/
-# Tiene acceso cualquier empleado autenticado
+
+# ─── Utilidad interna ────────────────────────────────────────────────────────
+
+async def _contar_tareas_activas(db: AsyncSession, id_empleado: int) -> int:
+    """
+    Devuelve la cantidad de tareas activas (pendiente | en_progreso)
+    asignadas al técnico indicado.
+    """
+    result = await db.execute(
+        select(func.count())
+        .select_from(EmpleadoTarea)
+        .join(Tarea, Tarea.id_tarea == EmpleadoTarea.id_tarea)
+        .where(
+            EmpleadoTarea.id_empleado == id_empleado,
+            Tarea.estado_tarea.in_(ESTADOS_ACTIVOS),
+        )
+    )
+    return result.scalar() or 0
+
+
+# ─── GET /tareas/ ─────────────────────────────────────────────────────────────
+# Historia 4 — Gualim: devuelve el técnico asignado como objeto anidado.
+# Acceso: cualquier empleado autenticado.
 
 @router.get(
     "/",
@@ -97,8 +122,10 @@ async def get_tareas(
 
     return tareas_response
 
-# POST /tareas/
-#Tiene unicamente  acceso admin y supervisor 
+
+# ─── POST /tareas/ ────────────────────────────────────────────────────────────
+# Historia 5 — Gualim: valida que el técnico asignado tenga < 3 tareas activas.
+# Acceso: admin y supervisor.
 
 @router.post(
     "/",
@@ -109,28 +136,65 @@ async def get_tareas(
 async def create_tarea(
     tarea: TareaCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    # Solo admin y supervisor pueden crear tareas
     _current_user: Annotated[Empleado, Depends(require_supervisor)],
 ):
     """
     Crea una nueva tarea y opcionalmente la asigna a un técnico.
 
-    - Solo roles admin y supervisor pueden crear tareas.
-    - Si se provee id_tecnico, se crea la relación EmpleadoTarea.
-    - Requiere token JWT válido con rol admin o supervisor.
+    Reglas de negocio (Historia 5):
+    - Si se indica id_tecnico, se verifica que ese técnico tenga menos de
+      LIMITE_TAREAS_ACTIVAS (3) tareas en estado 'pendiente' o 'en_progreso'.
+    - Si el límite se supera, se devuelve HTTP 400 con mensaje claro para
+      que el frontend lo muestre al supervisor.
+
+    Roles: admin, supervisor.
     """
+    # ── Validación de límite de carga (Historia 5) ──────────────────────────
+    if tarea.id_tecnico:
+        # Verificar que el técnico existe y es un técnico activo
+        result_tec = await db.execute(
+            select(Empleado).where(
+                Empleado.id_empleado == tarea.id_tecnico,
+                Empleado.estado == "activo",
+            )
+        )
+        tecnico = result_tec.scalar_one_or_none()
+
+        if not tecnico:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=(
+                    f"No se encontró ningún técnico activo con id={tarea.id_tecnico}."
+                ),
+            )
+
+        tareas_activas = await _contar_tareas_activas(db, tarea.id_tecnico)
+
+        if tareas_activas >= LIMITE_TAREAS_ACTIVAS:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"El técnico '{tecnico.nombre} {tecnico.apellido}' ya tiene "
+                    f"{tareas_activas} tareas activas. "
+                    f"El límite máximo es {LIMITE_TAREAS_ACTIVAS}. "
+                    f"Selecciona otro técnico disponible."
+                ),
+            )
+
+    # ── Crear la tarea ───────────────────────────────────────────────────────
     nueva_tarea = Tarea(
         titulo=tarea.nombre,
         descripcion=tarea.descripcion,
         direccion_servicio=tarea.direccion,
         prioridad=tarea.prioridad,
         estado_tarea="pendiente",
+        fecha_asignacion=date.today() if tarea.id_tecnico else None,
     )
 
     db.add(nueva_tarea)
-    await db.flush()  # Necesario para obtener id_tarea generado
+    await db.flush()  # Obtener id_tarea generado
 
-    # Asignar tecnico si se provee en el body
+    # ── Asignar técnico si se proveyó ────────────────────────────────────────
     if tarea.id_tecnico:
         asignacion = EmpleadoTarea(
             id_empleado=tarea.id_tecnico,
@@ -141,9 +205,8 @@ async def create_tarea(
     return nueva_tarea
 
 
-
-# PATCH /tareas/{id}/estado
-# Tiene acceso admin y supervisor
+# ─── PATCH /tareas/{id}/estado ────────────────────────────────────────────────
+# Acceso: admin y supervisor.
 
 @router.patch(
     "/{id}/estado",
@@ -155,7 +218,6 @@ async def update_estado(
     id: int,
     data: TareaUpdateEstado,
     db: Annotated[AsyncSession, Depends(get_db)],
-    # Solo admin y supervisor pueden cambiar el estado directamente
     _current_user: Annotated[Empleado, Depends(require_supervisor)],
 ):
     """
@@ -163,7 +225,6 @@ async def update_estado(
 
     - Solo roles admin y supervisor pueden actualizar el estado.
     - Estados válidos: pendiente, en_progreso, completado, cancelado.
-    - Requiere token JWT válido con rol admin o supervisor.
     """
     result = await db.execute(select(Tarea).where(Tarea.id_tarea == id))
     tarea = result.scalar_one_or_none()
@@ -178,9 +239,8 @@ async def update_estado(
     return tarea
 
 
-
-# PATCH /tareas/{id}/reasignar
-#Tiene acceso admin y supervisor
+# ─── PATCH /tareas/{id}/reasignar ─────────────────────────────────────────────
+# Acceso: admin y supervisor.
 
 @router.patch(
     "/{id}/reasignar",
@@ -192,16 +252,14 @@ async def reasignar_tarea(
     id: int,
     data: TareaReasignar,
     db: Annotated[AsyncSession, Depends(get_db)],
-    # Solo admin y supervisor pueden reasignar tareas
     _current_user: Annotated[Empleado, Depends(require_supervisor)],
 ):
     """
     Reasigna una tarea a un técnico diferente.
 
+    - Valida que el nuevo técnico no supere el límite de tareas activas.
     - Elimina todas las asignaciones previas de la tarea.
     - Crea una nueva asignación con el técnico indicado.
-    - Solo roles admin y supervisor pueden reasignar.
-    - Requiere token JWT válido con rol admin o supervisor.
     """
     result = await db.execute(select(Tarea).where(Tarea.id_tarea == id))
     tarea = result.scalar_one_or_none()
@@ -210,6 +268,33 @@ async def reasignar_tarea(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Tarea con id={id} no encontrada.",
+        )
+
+    # Verificar límite de carga del técnico destino
+    result_tec = await db.execute(
+        select(Empleado).where(
+            Empleado.id_empleado == data.id_tecnico,
+            Empleado.estado == "activo",
+        )
+    )
+    tecnico = result_tec.scalar_one_or_none()
+
+    if not tecnico:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No se encontró ningún técnico activo con id={data.id_tecnico}.",
+        )
+
+    tareas_activas = await _contar_tareas_activas(db, data.id_tecnico)
+
+    if tareas_activas >= LIMITE_TAREAS_ACTIVAS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"El técnico '{tecnico.nombre} {tecnico.apellido}' ya tiene "
+                f"{tareas_activas} tareas activas. "
+                f"El límite máximo es {LIMITE_TAREAS_ACTIVAS}."
+            ),
         )
 
     # Eliminar asignaciones anteriores
@@ -227,9 +312,8 @@ async def reasignar_tarea(
     return tarea
 
 
-
-# PATCH /tareas/{id}/iniciar
-# Tiene acceso el tecnico asignado, admin y supervisor
+# ─── PATCH /tareas/{id}/iniciar ───────────────────────────────────────────────
+# Acceso: técnico asignado, admin y supervisor.
 
 @router.patch(
     "/{id}/iniciar",
@@ -239,7 +323,6 @@ async def reasignar_tarea(
 async def iniciar_tarea(
     id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    # Tecnicos, admins y supervisores pueden iniciar tareas
     current_user: Annotated[Empleado, Depends(require_tecnico)],
 ):
     """
@@ -248,9 +331,7 @@ async def iniciar_tarea(
     - Solo el técnico asignado a la tarea puede iniciarla (o admin/supervisor).
     - Verifica que el empleado autenticado esté asignado a la tarea.
     - Registra la fecha de inicio actual.
-    - Requiere token JWT válido con rol tecnico, admin o supervisor.
     """
-    # 1. Buscar la tarea
     result = await db.execute(select(Tarea).where(Tarea.id_tarea == id))
     tarea = result.scalar_one_or_none()
 
@@ -260,8 +341,7 @@ async def iniciar_tarea(
             detail=f"Tarea con id={id} no encontrada.",
         )
 
-    # 2. Verificar que el tecnico autenticado este asignado a esta tarea
-    #    (los admins y supervisores si pueden saltarse esta validación)
+    # Solo el técnico asignado puede iniciar (admin/supervisor se saltan esta validación)
     if current_user.rol == "tecnico":
         result_asig = await db.execute(
             select(EmpleadoTarea).where(
@@ -278,14 +358,12 @@ async def iniciar_tarea(
                        "Solo el técnico asignado puede iniciarla.",
             )
 
-    # 3. Verificar si tarea no ha sido iniciada ya
     if tarea.fecha_inicio is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="La tarea ya fue iniciada anteriormente.",
         )
 
-    # 4. Registrar fecha de inicio
     tarea.fecha_inicio = date.today()
     tarea.estado_tarea = "en_progreso"
 
