@@ -52,14 +52,14 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      target: development
+      target: production
     container_name: teleprogreso_frontend
     restart: unless-stopped
     env_file: .env
     environment:
       VITE_API_URL: http://localhost:8000
     ports:
-      - "5173:5173"
+      - "5173:80"
     depends_on:
       - backend
     volumes:
