@@ -65,7 +65,7 @@ export default function ReasignacionPage() {
           // Calcular cuántas tareas activas tiene cada técnico
           const tecnicosConConteo = listaTecnicos.map((tec) => {
             const activas = todasTareas.filter((t) =>
-              t.empleados?.some((et) => et.id_empleado === tec.id_empleado) &&
+              t.tecnico?.id_empleado === tec.id_empleado &&
               ['pendiente', 'en_progreso'].includes(t.estado_tarea)
             ).length
 
