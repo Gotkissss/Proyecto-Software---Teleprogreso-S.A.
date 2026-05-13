@@ -1,8 +1,25 @@
 # ============================================================
-# Frontend — React + Vite — Railway (Plan B simple)
+# Frontend — React + Vite — Multi-stage (dev + producción)
 # ============================================================
 
-# ---------- Etapa: Build ----------
+# ---------- Etapa: Development (para docker-compose local) ----------
+FROM node:20-alpine AS development
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+EXPOSE 80
+EXPOSE 5173
+
+# Vite dev server en el puerto 80 (porque docker-compose mapea 5173:80)
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "80"]
+
+
+# ---------- Etapa: Build (para producción) ----------
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -17,13 +34,11 @@ COPY . .
 RUN npm run build
 
 
-# ---------- Etapa: Servir con Nginx ----------
+# ---------- Etapa: Producción (Nginx en Railway) ----------
 FROM nginx:stable-alpine AS production
 
-# Copiar el build estático
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Config de nginx con un placeholder __PORT__ que sustituimos en runtime.
 RUN rm /etc/nginx/conf.d/default.conf
 
 RUN cat > /etc/nginx/conf.d/default.conf.tpl << 'EOF'
@@ -52,5 +67,4 @@ EOF
 ENV PORT=80
 EXPOSE 80
 
-# Al iniciar: sustituir __PORT__ por el valor real de $PORT y arrancar nginx.
 CMD sh -c "sed \"s/__PORT__/$PORT/g\" /etc/nginx/conf.d/default.conf.tpl > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
