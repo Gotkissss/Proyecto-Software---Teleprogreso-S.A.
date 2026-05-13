@@ -2,13 +2,6 @@
  * pages/LoginPage.jsx
  * ---------------------------------------------------------------------------
  * Vista de login conectada al endpoint de autenticación.
- * 
- * Flujo:
- *  1. Usuario ingresa correo + contraseña
- *  2. Se llama a loginUser() del AuthContext
- *  3. AuthContext llama a authService.login() → guarda JWT
- *  4. AuthContext llama a authService.getMe() → carga perfil
- *  5. Redirige a /ruta
  * ---------------------------------------------------------------------------
  */
 
@@ -41,7 +34,6 @@ export default function LoginPage() {
     setError(null)
     try {
       await loginUser(correo, contrasena)
-      // La redirección la maneja AuthContext → /ruta
     } catch (err) {
       const detail = err?.response?.data?.detail
       if (err?.response?.status === 401) {
@@ -60,6 +52,8 @@ export default function LoginPage() {
     <div className={styles.page}>
       {/* Fondo decorativo */}
       <div className={styles.bgDecor} aria-hidden="true">
+        <div className={styles.bgImage} />
+        <div className={styles.bgOverlay} />
         <div className={styles.bgBlob1} />
         <div className={styles.bgBlob2} />
       </div>
