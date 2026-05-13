@@ -2,23 +2,29 @@
  * api/client.js
  * ---------------------------------------------------------------------------
  * Cliente Axios centralizado para Teleprogreso S.A.
- * 
- * - Agrega automáticamente el JWT en cada petición (Bearer token)
- * - Si el servidor responde 401, limpia la sesión y redirige al login
- * - Todos los servicios importan este cliente, NO crean su propio axios
  * ---------------------------------------------------------------------------
  */
 
 import axios from 'axios'
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// Detecta automáticamente el entorno:
+// - Si estamos en localhost (desarrollo local) → usa el backend local
+// - Si estamos en cualquier otro dominio (Railway) → usa el backend de Railway
+const isLocalhost =
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' ||
+   window.location.hostname === '127.0.0.1')
+
+const BASE_URL = isLocalhost
+  ? 'http://localhost:8000'
+  : 'https://backend-production-6d60.up.railway.app'
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 segundos
+  timeout: 15000,
 })
 
 /* ── Request Interceptor ──────────────────────────────────────────────── */
@@ -38,10 +44,8 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expirado o inválido → limpiar sesión
       localStorage.removeItem('access_token')
       localStorage.removeItem('user')
-      // Redirigir al login sin usar React Router (acceso global)
       window.location.href = '/login'
     }
     return Promise.reject(error)

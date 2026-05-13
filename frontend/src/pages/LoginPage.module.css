@@ -19,26 +19,30 @@
 }
 
 /* Imagen de fondo desvanecida */
+/* Decoración de fondo */
+.bgDecor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Imagen de fondo — logo grande y nítido */
 .bgImage {
   position: absolute;
   inset: 0;
   background-image: url('/teleprogreso-logo.png');
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: 60%;
-  opacity: 0.08;
-  filter: blur(1px);
+  background-size: 85%;
+  opacity: 1;
+  filter: none;
 }
 
-/* Overlay degradado para suavizar la imagen */
+/* Overlay degradado eliminado para que se vea claro el logo */
 .bgOverlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(244, 247, 251, 0.7) 0%,
-    rgba(232, 239, 255, 0.5) 100%
-  );
+  display: none;
 }
 
 .bgBlob1 {
@@ -47,7 +51,7 @@
   right: -100px;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(26,86,219,0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(26,86,219,0.08) 0%, transparent 70%);
   border-radius: 50%;
 }
 
@@ -57,7 +61,7 @@
   left: -80px;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(26,86,219,0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(26,86,219,0.06) 0%, transparent 70%);
   border-radius: 50%;
 }
 
