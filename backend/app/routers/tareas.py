@@ -69,7 +69,7 @@ async def _contar_tareas_activas(db: AsyncSession, id_empleado: int) -> int:
 # Acceso: cualquier empleado autenticado.
 
 @router.get(
-    "/",
+    "",  # sin "/" final → evita redirect 307 detrás de proxy HTTPS (mixed content)
     response_model=List[TareaResponse],
     summary="Listar tareas",
     status_code=status.HTTP_200_OK,
@@ -126,7 +126,7 @@ async def get_tareas(
 # Acceso: admin y supervisor.
 
 @router.post(
-    "/",
+    "",  # sin "/" final → evita redirect 307 detrás de proxy HTTPS (mixed content)
     response_model=TareaResponse,
     summary="Crear nueva tarea",
     status_code=status.HTTP_201_CREATED,
