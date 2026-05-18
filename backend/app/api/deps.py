@@ -103,3 +103,6 @@ require_admin       = require_roles("admin")
 require_supervisor  = require_roles("admin", "supervisor")
 require_gerente     = require_roles("admin", "gerente")
 require_tecnico     = require_roles("admin", "supervisor", "tecnico")
+# Para vistas/endpoints de gestión visibles a roles administrativos
+# (admin, supervisor y gerente). Pe. dashboards y métricas operativas.
+require_admin_supervisor_gerente = require_roles("admin", "supervisor", "gerente")

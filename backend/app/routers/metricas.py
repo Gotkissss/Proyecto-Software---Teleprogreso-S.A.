@@ -17,7 +17,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import require_gerente, require_supervisor
+from app.api.deps import require_admin_supervisor_gerente, require_supervisor
 from app.db.session import get_db
 from app.models.asistencia import Asistencia
 from app.models.empleado import Empleado, EmpleadoTarea
@@ -39,7 +39,7 @@ ESTADOS_ACTIVOS = ("pendiente", "en_progreso")
 )
 async def get_metricas_supervisor(
     db: Annotated[AsyncSession, Depends(get_db)],
-    _current_user: Annotated[Empleado, Depends(require_gerente)],
+    _current_user: Annotated[Empleado, Depends(require_admin_supervisor_gerente)],
 ):
     """
     Devuelve las métricas operativas del día actual:

@@ -22,5 +22,9 @@ COPY . .
 
 EXPOSE 8000
 
-# El comando de inicio lo define docker-compose (incluye migraciones + uvicorn)
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# En local (docker-compose) el command se sobrescribe.
+# En Railway / cualquier despliegue plano: aplicamos migraciones + seed
+# y luego arrancamos uvicorn. El seed.py solo inserta datos si la BD
+# está vacía, así que es seguro ejecutarlo en cada arranque.
+# Railway inyecta $PORT en runtime; si no existe usamos 8000 por defecto.
+CMD ["sh", "-c", "alembic upgrade head && python seed.py && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

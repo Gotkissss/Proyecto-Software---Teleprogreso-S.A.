@@ -7,17 +7,21 @@
 
 import axios from 'axios'
 
-// Detecta automáticamente el entorno:
-// - Si estamos en localhost (desarrollo local) → usa el backend local
-// - Si estamos en cualquier otro dominio (Railway) → usa el backend de Railway
+// Resolución de la URL base del API:
+// 1. Si la build inyectó VITE_API_URL (Railway / .env.production) → usarla.
+// 2. Si estamos en localhost (desarrollo local) → backend local.
+// 3. Fallback: backend de Railway (mantiene compatibilidad si la build
+//    de prod se hizo sin VITE_API_URL).
 const isLocalhost =
   typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' ||
    window.location.hostname === '127.0.0.1')
 
-const BASE_URL = isLocalhost
-  ? 'http://localhost:8000'
-  : 'https://backend-production-6d60.up.railway.app'
+const BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (isLocalhost
+    ? 'http://localhost:8000'
+    : 'https://backend-production-6d60.up.railway.app')
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
