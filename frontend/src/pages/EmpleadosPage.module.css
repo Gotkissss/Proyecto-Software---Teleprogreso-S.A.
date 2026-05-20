@@ -762,7 +762,8 @@
   justify-content: center;
   z-index: 200;
   animation: fadeIn 200ms ease-out;
-  padding: var(--space-4);
+  /* margen claro contra los bordes de la pantalla */
+  padding: var(--space-6) var(--space-5);
 }
 
 .modal {
@@ -770,9 +771,9 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-xl);
-  padding: var(--space-7) var(--space-7) var(--space-6);
+  padding: 36px 36px 28px;
   width: 100%;
-  max-width: 440px;
+  max-width: 500px;
   text-align: center;
   animation: fadeInScale 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -907,7 +908,8 @@
   justify-content: center;
   z-index: 200;
   animation: fadeIn 220ms ease-out;
-  padding: var(--space-4);
+  /* aire entre el panel y los bordes de la pantalla */
+  padding: var(--space-8) var(--space-6);
   overflow-y: auto;
 }
 
@@ -917,8 +919,8 @@
   border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-xl);
   width: 100%;
-  max-width: 720px;
-  max-height: calc(100vh - 48px);
+  max-width: 820px;
+  max-height: calc(100vh - 96px);
   display: flex;
   flex-direction: column;
   animation: fadeInScale 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -930,7 +932,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-6) var(--space-7);
+  padding: 28px 40px;
   border-bottom: 1px solid var(--color-border);
   background: var(--gradient-primary-soft);
 }
@@ -1008,24 +1010,24 @@
   font-weight: 500;
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
-  margin: var(--space-5) var(--space-7) 0;
+  margin: var(--space-5) 40px 0;
   line-height: 1.45;
   animation: fadeIn 200ms ease-out;
 }
 
 /* ── Formulario de edición ─────────────────────────────────── */
 .editForm {
-  padding: var(--space-7) var(--space-8) var(--space-7);
+  padding: 32px 40px 32px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: 26px;
 }
 
 .editFormGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-5) var(--space-6);
+  gap: 22px 28px;
 }
 
 .editField {
@@ -1048,15 +1050,24 @@
   grid-column: 1 / -1;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: 0.6875rem;
+  gap: 10px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--color-primary-dark);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  padding-bottom: var(--space-2);
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--color-border);
-  margin-top: var(--space-2);
+  margin-top: 8px;
+}
+
+.formSectionLabel::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 14px;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-full);
 }
 
 .formSectionLabel:first-child {
@@ -1066,13 +1077,13 @@
 .editLabel {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--color-text-secondary);
-  margin-bottom: var(--space-2);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 8px;
+  letter-spacing: -0.005em;
+  text-transform: none;
 }
 
 .required {
@@ -1425,15 +1436,22 @@
     justify-content: space-between;
     width: 100%;
   }
+  .modalOverlay,
+  .panelOverlay {
+    padding: var(--space-4);
+  }
   .modal,
   .editPanel {
     max-width: 100%;
   }
+  .modal {
+    padding: var(--space-7) var(--space-6) var(--space-6);
+  }
   .editPanelHeader {
-    padding: var(--space-5);
+    padding: var(--space-5) var(--space-6);
   }
   .editForm {
-    padding: var(--space-5);
+    padding: var(--space-6) var(--space-6);
   }
   .editFormBtns {
     flex-direction: column-reverse;

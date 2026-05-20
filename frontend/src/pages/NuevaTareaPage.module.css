@@ -81,9 +81,9 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
-  padding: var(--space-8);
-  box-shadow: var(--shadow-xs);
-  max-width: 760px;
+  padding: 40px 40px 36px;
+  box-shadow: var(--shadow-sm, var(--shadow-xs));
+  max-width: 880px;
   margin: 0 auto;
 }
 
@@ -114,7 +114,7 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-6);
 }
 
 .field {
@@ -156,8 +156,8 @@
 .select {
   width: 100%;
   padding: 0 var(--space-4);
-  height: 46px;
-  border: 1.5px solid transparent;
+  height: 48px;
+  border: 1.5px solid var(--color-border);
   border-radius: var(--radius-md);
   font-size: 0.9375rem;
   color: var(--color-text);
@@ -322,20 +322,21 @@
 /* ── Botones del formulario ────────────────────────────────── */
 .formBtns {
   display: flex;
-  gap: var(--space-3);
+  gap: var(--space-2);
   justify-content: flex-end;
-  margin-top: var(--space-3);
+  margin-top: var(--space-2);
   padding-top: var(--space-5);
   border-top: 1px solid var(--color-border);
 }
 
 .cancelBtn {
-  padding: 11px 22px;
+  padding: 8px 16px;
+  height: 38px;
   background: var(--color-bg-alt);
   color: var(--color-text);
   border: 1.5px solid transparent;
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   font-family: var(--font-sans);
@@ -348,19 +349,20 @@
 }
 
 .submitBtn {
-  padding: 11px 26px;
+  padding: 8px 18px;
+  height: 38px;
   background: var(--gradient-primary);
   color: #fff;
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   font-family: var(--font-sans);
   transition: var(--transition);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   box-shadow: var(--shadow-primary-sm);
-  min-width: 160px;
+  min-width: 0;
 }
 
 .submitBtn:hover:not(:disabled) {
@@ -442,7 +444,7 @@
     font-size: 1.5rem;
   }
   .card {
-    padding: var(--space-5);
+    padding: var(--space-6) var(--space-5);
   }
   .formBtns {
     flex-direction: column-reverse;
