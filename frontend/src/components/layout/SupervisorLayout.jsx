@@ -2,9 +2,11 @@
  * components/layout/SupervisorLayout.jsx
  * ---------------------------------------------------------------------------
  * Layout para las rutas del supervisor — diseño desktop a ancho completo.
+ * Top bar corporativa con logo real + bottom nav moderna.
  * ---------------------------------------------------------------------------
  */
 
+import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import styles from './SupervisorLayout.module.css'
@@ -35,15 +37,17 @@ const IconEmpleados = () => (
     <path d="M16 3.13a4 4 0 0 1 0 7.75" />
   </svg>
 )
-const IconMenu = () => (
+const IconBell = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" />
-    <line x1="3" y1="18" x2="21" y2="18" />
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
   </svg>
 )
-const IconLogo = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+const IconLogout = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
   </svg>
 )
 
@@ -56,27 +60,77 @@ const NAV_ITEMS = [
 
 export default function SupervisorLayout() {
   const { user, logoutUser } = useAuth()
+  const navigate = useNavigate()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const displayName = user?.nombre || 'Supervisor'
+  const displayRole = user?.rol ? user.rol.charAt(0).toUpperCase() + user.rol.slice(1) : 'Supervisor'
 
   return (
     <div className={styles.wrapper}>
       <header className={styles.topBar}>
         <div className={styles.topBarLeft}>
-          <span className={styles.logo}><IconLogo /></span>
-          <span className={styles.appName}>Teleprogreso — Supervisor</span>
+          <img
+            src="/teleprogreso-logo.png"
+            alt="Teleprogreso"
+            className={styles.logo}
+          />
+          <div className={styles.brandText}>
+            <span className={styles.brandName}>Teleprogreso</span>
+            <span className={styles.brandRole}>Panel · {displayRole}</span>
+          </div>
         </div>
+
         <div className={styles.topBarRight}>
-          {user && (
-            <button className={styles.avatarBtn} title={displayName}>
-              <span className={styles.avatarInitial}>
-                {displayName[0]?.toUpperCase() ?? 'S'}
-              </span>
-            </button>
-          )}
-          <button className={styles.menuBtn} onClick={logoutUser} title="Cerrar sesión">
-            <IconMenu />
+          <button
+            className={styles.iconBtn}
+            aria-label="Ver alertas"
+            title="Ver alertas"
+            onClick={() => navigate('/supervisor/alertas')}
+          >
+            <IconBell />
+            <span className={styles.badge}>3</span>
           </button>
+
+          {user && (
+            <div className={styles.userMenu}>
+              <button
+                className={styles.avatarBtn}
+                onClick={() => setMenuOpen((v) => !v)}
+                title={displayName}
+              >
+                <span className={styles.avatarInitial}>
+                  {displayName[0]?.toUpperCase() ?? 'S'}
+                </span>
+                <span className={styles.userInfo}>
+                  <span className={styles.userName}>{displayName}</span>
+                  <span className={styles.userRole}>{displayRole}</span>
+                </span>
+              </button>
+
+              {menuOpen && (
+                <>
+                  <div
+                    className={styles.menuBackdrop}
+                    onClick={() => setMenuOpen(false)}
+                  />
+                  <div className={styles.dropdown}>
+                    <div className={styles.dropdownHeader}>
+                      <strong>{displayName}</strong>
+                      <span>{user.correo}</span>
+                    </div>
+                    <button
+                      className={styles.dropdownItem}
+                      onClick={() => { setMenuOpen(false); logoutUser() }}
+                    >
+                      <IconLogout />
+                      Cerrar sesión
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </header>
 

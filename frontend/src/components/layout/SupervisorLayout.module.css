@@ -1,14 +1,20 @@
+/* ===================================================
+   SupervisorLayout — Teleprogreso S.A.
+   =================================================== */
+
 .wrapper {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 100vh;
   width: 100%;
   background: var(--color-bg);
-  position: relative;
 }
 
-/* ── Top Bar ─────────────────────────────────── */
+/* ── Top bar ────────────────────────────────────────── */
 .topBar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -16,9 +22,8 @@
   padding: 0 var(--space-6);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  box-shadow: var(--shadow-xs);
+  backdrop-filter: saturate(180%) blur(8px);
 }
 
 .topBarLeft {
@@ -28,21 +33,30 @@
 }
 
 .logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: var(--color-primary);
-  border-radius: var(--radius-sm);
-  color: white;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  background: var(--color-primary-50);
+  border-radius: var(--radius-md);
+  padding: 4px;
 }
-.logo svg { width: 20px; height: 20px; }
 
-.appName {
+.brandText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.brandName {
+  font-size: 1rem;
   font-weight: 700;
-  font-size: 17px;
   color: var(--color-text);
+  letter-spacing: -0.02em;
+}
+.brandRole {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 .topBarRight {
@@ -51,77 +65,236 @@
   gap: var(--space-3);
 }
 
-.avatarBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  border: none;
-  cursor: pointer;
-  display: flex;
+/* Botón icono (campana, etc.) */
+.iconBtn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.iconBtn:hover {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+.iconBtn svg { width: 18px; height: 18px; }
+
+.badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent);
+  color: white;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-surface);
+  line-height: 1;
+}
+
+/* User menu */
+.userMenu { position: relative; }
+
+.avatarBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 4px var(--space-3) 4px 4px;
+  background: var(--color-bg);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.avatarBtn:hover {
+  background: var(--color-primary-light);
 }
 
 .avatarInitial {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-primary);
   color: white;
-  font-size: 15px;
   font-weight: 700;
+  font-size: 0.9375rem;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-primary-sm);
+  flex-shrink: 0;
+}
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+.userName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.userRole {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.menuBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--color-text-secondary);
+/* Dropdown */
+.menuBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  min-width: 240px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: fadeIn 150ms ease-out;
+}
+.dropdownHeader {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+.dropdownHeader strong {
+  font-size: 0.9375rem;
+  color: var(--color-text);
+}
+.dropdownHeader span {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+.dropdownItem {
+  width: 100%;
   display: flex;
   align-items: center;
-  padding: var(--space-1);
-  border-radius: var(--radius-sm);
-  transition: background var(--transition);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: var(--transition);
 }
-.menuBtn:hover { background: var(--color-bg); }
-.menuBtn svg { width: 22px; height: 22px; }
+.dropdownItem:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-dark);
+}
+.dropdownItem svg { width: 16px; height: 16px; }
 
-/* ── Main content ────────────────────────────── */
+/* ── Main ──────────────────────────────────────────── */
 .main {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6) calc(var(--bottom-nav-height) + var(--space-8));
 }
 
-/* ── Bottom Nav ──────────────────────────────── */
+/* ── Bottom nav ────────────────────────────────────── */
 .bottomNav {
+  position: fixed;
+  bottom: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
   display: flex;
-  height: var(--bottom-nav-height);
+  gap: var(--space-1);
+  padding: 6px;
   background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  position: sticky;
-  bottom: 0;
-  z-index: 100;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg);
 }
 
 .navItem {
-  flex: 1;
+  position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 3px;
-  text-decoration: none;
-  color: var(--color-text-muted);
-  transition: color var(--transition);
-  -webkit-tap-highlight-color: transparent;
-}
-.navItem:hover { color: var(--color-text-secondary); }
-.navItem.active { color: var(--color-primary); }
-
-.navIcon { display: flex; }
-.navIcon svg { width: 22px; height: 22px; }
-
-.navLabel {
-  font-size: 11px;
+  gap: var(--space-2);
+  padding: 10px var(--space-5);
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.navItem:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.navIcon { display: flex; align-items: center; justify-content: center; }
+.navIcon svg { width: 18px; height: 18px; }
+
+.navLabel { line-height: 1; }
+
+.active {
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: var(--shadow-primary-sm);
+}
+.active:hover {
+  background: var(--gradient-primary);
+  color: white;
+}
+
+/* ── Responsive ────────────────────────────────────── */
+@media (max-width: 768px) {
+  .topBar { padding: 0 var(--space-4); }
+  .brandText { display: none; }
+  .userInfo { display: none; }
+  .avatarBtn { padding: 0; }
+  .main { padding: var(--space-5) var(--space-4) calc(var(--bottom-nav-height) + var(--space-6)); }
+  .bottomNav {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: none;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    padding: var(--space-2) var(--space-2);
+    justify-content: space-around;
+  }
+  .navItem {
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 10px;
+    font-size: 0.6875rem;
+    border-radius: var(--radius-md);
+  }
+  .navLabel { letter-spacing: 0.01em; }
 }

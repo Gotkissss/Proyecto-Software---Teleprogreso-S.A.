@@ -657,7 +657,22 @@ export default function EmpleadosPage() {
       </div>
 
       {successMsg && (
-        <div className={styles.successBanner}><IconCheck /><span>{successMsg}</span></div>
+        <div className={styles.toast} role="status" aria-live="polite">
+          <span className={styles.toastIcon}><IconCheck /></span>
+          <div className={styles.toastBody}>
+            <span className={styles.toastTitle}>¡Listo!</span>
+            <span className={styles.toastMsg}>{successMsg}</span>
+          </div>
+          <button
+            type="button"
+            className={styles.toastClose}
+            onClick={() => setSuccessMsg(null)}
+            aria-label="Cerrar notificación"
+          >
+            <IconX />
+          </button>
+          <span className={styles.toastBar} />
+        </div>
       )}
       {error && empleados.length > 0 && (
         <div className={styles.errorBanner}>{error}</div>

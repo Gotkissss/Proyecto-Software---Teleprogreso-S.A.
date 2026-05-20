@@ -134,13 +134,23 @@ export default function DashboardPage() {
 
   return (
     <div className={styles.page}>
-      <h1 className={styles.title}>Dashboard</h1>
+      <h1 className={styles.title}>Panel de control</h1>
+      <p className={styles.subtitle}>
+        Vista general de la operación en tiempo real
+      </p>
 
       {/* ── Métricas ── */}
       <section className={styles.metricsGrid}>
         <MetricCard
           label="Técnicos activos"
-          value={metricas?.tecnicos_activos ?? 0}
+          // Si el backend reporta 0 pero hay técnicos activos en la lista,
+          // mostramos el conteo real (técnicos con estado 'activo' o 'en_limite')
+          // visible en la sección "Técnicos hoy".
+          value={
+            metricas?.tecnicos_activos && metricas.tecnicos_activos > 0
+              ? metricas.tecnicos_activos
+              : tecnicosList.length
+          }
           variant="info"
         />
         <MetricCard

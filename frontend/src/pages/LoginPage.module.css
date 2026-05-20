@@ -1,233 +1,399 @@
+/* ===================================================
+   LoginPage — Teleprogreso S.A.
+   Splash + login en dos columnas (branding + form).
+   =================================================== */
+
 .page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-6);
-  background: var(--color-bg);
   position: relative;
+  min-height: 100dvh;
+  width: 100%;
   overflow: hidden;
+  background: var(--color-bg);
 }
 
-/* Decoración de fondo */
+/* ── Fondo decorativo ───────────────────────────────── */
 .bgDecor {
   position: absolute;
   inset: 0;
-  pointer-events: none;
   z-index: 0;
-  overflow: hidden;
+  pointer-events: none;
 }
-
-/* Imagen de fondo desvanecida */
-/* Decoración de fondo */
-.bgDecor {
+.bgGradient {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-/* Imagen de fondo — logo grande y nítido */
-.bgImage {
-  position: absolute;
-  inset: 0;
-  background-image: url('/teleprogreso-logo.png');
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: 85%;
+  background: var(--gradient-hero);
   opacity: 1;
-  filter: none;
 }
-
-/* Overlay degradado eliminado para que se vea claro el logo */
-.bgOverlay {
-  display: none;
-}
-
 .bgBlob1 {
   position: absolute;
   top: -120px;
-  right: -100px;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(26,86,219,0.08) 0%, transparent 70%);
+  right: -120px;
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%);
   border-radius: 50%;
+  filter: blur(20px);
 }
-
 .bgBlob2 {
   position: absolute;
-  bottom: -80px;
-  left: -80px;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(26,86,219,0.06) 0%, transparent 70%);
+  bottom: -160px;
+  left: -160px;
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, rgba(229,57,53,0.20) 0%, transparent 70%);
   border-radius: 50%;
+  filter: blur(40px);
+}
+.bgGrid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
 }
 
-/* Tarjeta */
-.card {
+/* ── Splash Screen ──────────────────────────────────── */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  background: var(--gradient-hero);
+  animation: splashOut 600ms cubic-bezier(0.4, 0, 0.2, 1) 1300ms forwards;
+}
+.splashLogoRing {
+  position: relative;
+  padding: var(--space-8);
+  border-radius: var(--radius-full);
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.20),
+    inset 0 1px 0 rgba(255,255,255,0.25);
+  animation:
+    splashLogoIn 800ms cubic-bezier(0.34, 1.56, 0.64, 1) both,
+    pulse-ring 2s ease-in-out 800ms infinite;
+}
+.splashLogo {
+  width: 200px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.25));
+  background: white;
+  border-radius: var(--radius-2xl);
+  padding: var(--space-4) var(--space-5);
+}
+.splashTagline {
+  color: rgba(255,255,255,0.95);
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  animation: fadeIn 600ms ease-out 600ms both;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+.splashDots {
+  display: flex;
+  gap: 8px;
+  margin-top: var(--space-4);
+  animation: fadeIn 400ms ease-out 900ms both;
+}
+.splashDots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+.splashDots span:nth-child(2) { animation-delay: 0.2s; }
+.splashDots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes splashLogoIn {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes splashOut {
+  to { opacity: 0; visibility: hidden; }
+}
+@keyframes dotPulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50%      { opacity: 1;   transform: scale(1.1); }
+}
+
+/* ── Layout principal ───────────────────────────────── */
+.layout {
   position: relative;
   z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100dvh;
   width: 100%;
-  max-width: 400px;
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  padding: var(--space-8) var(--space-8);
-  box-shadow: var(--shadow-lg);
-  animation: fadeIn 0.4s ease;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 700ms ease-out, transform 700ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Logo */
-.logoWrap {
+/* En monitores grandes mantenemos el contenido centrado y compacto
+   para que el branding no se sienta lejos del formulario. */
+@media (min-width: 1280px) {
+  .layout {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    max-width: 1280px;
+  }
+}
+.layoutVisible {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 200ms;
+}
+
+/* ── Lado izquierdo: branding ────────────────────────── */
+.brandSide {
+  position: relative;
+  padding: var(--space-12) clamp(var(--space-8), 5vw, var(--space-16))
+           var(--space-12) clamp(var(--space-10), 6vw, var(--space-20));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: white;
+}
+.brandContent {
+  max-width: 560px;
+  width: 100%;
+}
+.brandLogo {
+  width: clamp(240px, 22vw, 320px);
+  height: auto;
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: var(--space-3) var(--space-5);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.22);
+  margin-bottom: var(--space-8);
+}
+.brandTitle {
+  font-size: clamp(2rem, 3vw, 2.85rem);
+  font-weight: 800;
+  line-height: 1.12;
+  margin-bottom: var(--space-4);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.brandSubtitle {
+  font-size: clamp(1.0625rem, 1.15vw, 1.1875rem);
+  line-height: 1.6;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: var(--space-8);
+}
+.brandFeatures {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.brandFeatures li {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  margin-bottom: var(--space-2);
+  font-size: clamp(0.9375rem, 1vw, 1.0625rem);
+  font-weight: 500;
+  color: rgba(255,255,255,0.92);
 }
-
-.logoIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  background: var(--color-primary);
-  border-radius: var(--radius-md);
-  color: white;
+.featDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 4px rgba(229,57,53,0.25);
   flex-shrink: 0;
 }
-.logoIcon svg { width: 24px; height: 24px; }
+.brandFooter {
+  font-size: 0.8125rem;
+  color: rgba(255,255,255,0.65);
+  letter-spacing: 0.02em;
+  margin-top: var(--space-10);
+}
 
-.appName {
-  font-size: 20px;
+/* ── Lado derecho: form ──────────────────────────────── */
+.formSide {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: var(--space-8) clamp(var(--space-6), 4vw, var(--space-12))
+           var(--space-8) var(--space-4);
+}
+.card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--color-surface);
+  padding: var(--space-10);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  animation: fadeInScale 600ms cubic-bezier(0.4, 0, 0.2, 1) 400ms both;
+}
+.mobileLogo {
+  display: none;
+  width: 160px;
+  margin: 0 auto var(--space-6);
+}
+.header {
+  margin-bottom: var(--space-8);
+  text-align: center;
+}
+.title {
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--color-text);
-  line-height: 1.2;
+  margin-bottom: var(--space-2);
+  letter-spacing: -0.025em;
 }
-
 .subtitle {
-  font-size: 13px;
   color: var(--color-text-secondary);
-  margin-bottom: var(--space-8);
-  padding-left: 56px;
+  font-size: 0.9375rem;
 }
 
-/* Formulario */
+/* ── Form ────────────────────────────────────────────── */
 .form {
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
 }
-
-/* Error banner */
 .errorBanner {
-  background: var(--color-danger-light);
-  color: var(--color-danger);
-  border: 1px solid rgba(220,38,38,0.2);
-  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
-  font-size: 13px;
-  line-height: 1.4;
-  animation: fadeIn 0.2s ease;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-dark);
+  border-left: 4px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  animation: fadeIn 200ms ease-out;
+}
+.errorBanner svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
-/* Campo */
 .field { display: flex; flex-direction: column; gap: var(--space-2); }
-
 .label {
-  font-size: 13px;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--color-text);
+  letter-spacing: -0.01em;
 }
-
-.inputWrap { position: relative; }
+.inputWrap { position: relative; display: flex; align-items: center; }
+.inputIcon {
+  position: absolute;
+  left: var(--space-3);
+  display: flex;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+.inputIcon svg { width: 18px; height: 18px; }
 
 .input {
   width: 100%;
-  height: 44px;
+  height: 48px;
   padding: 0 var(--space-4);
-  background: var(--color-bg);
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-family: var(--font-sans);
-  font-size: 15px;
+  font-size: 0.9375rem;
+  font-family: inherit;
   color: var(--color-text);
-  transition: border-color var(--transition), box-shadow var(--transition);
-  outline: none;
+  background: var(--color-bg);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-md);
+  transition: var(--transition);
 }
-
 .input::placeholder { color: var(--color-text-muted); }
-
+.input:hover { background: var(--color-bg-alt); }
 .input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(26,86,219,0.12);
+  outline: none;
   background: var(--color-surface);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(30,136,229,0.12);
 }
-
-.input:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.inputWithIcon { padding-right: 44px; }
+.input:disabled { opacity: 0.6; cursor: not-allowed; }
+.inputWithLeftIcon  { padding-left: 44px; }
+.inputWithRightIcon { padding-right: 44px; }
 
 .eyeBtn {
   position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
+  right: var(--space-3);
   background: none;
   border: none;
-  cursor: pointer;
   color: var(--color-text-muted);
+  cursor: pointer;
+  padding: var(--space-1);
   display: flex;
-  padding: 4px;
   border-radius: var(--radius-sm);
-  transition: color var(--transition);
+  transition: var(--transition);
 }
-.eyeBtn:hover { color: var(--color-text-secondary); }
+.eyeBtn:hover { color: var(--color-primary); background: var(--color-primary-light); }
 .eyeBtn svg { width: 18px; height: 18px; }
 
-/* Botón principal */
 .submitBtn {
-  display: flex;
+  margin-top: var(--space-2);
+  height: 50px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  height: 48px;
-  background: var(--color-primary);
+  background: var(--gradient-primary);
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  font-family: var(--font-sans);
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  margin-top: var(--space-2);
-  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
-  box-shadow: 0 2px 8px rgba(26,86,219,0.3);
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
+  box-shadow: var(--shadow-primary-sm);
 }
-
 .submitBtn:hover:not(:disabled) {
-  background: var(--color-primary-dark);
-  box-shadow: 0 4px 16px rgba(26,86,219,0.4);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-primary);
+  filter: brightness(1.05);
 }
-
-.submitBtn:active:not(:disabled) { transform: translateY(0); }
-
+.submitBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
 .submitBtn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-  transform: none;
 }
 
-/* Footer */
-.footer {
-  text-align: center;
-  font-size: 12px;
-  color: var(--color-text-muted);
+.helpText {
   margin-top: var(--space-6);
-  line-height: 1.5;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+/* ── Responsive: mobile ─────────────────────────────── */
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .brandSide { display: none; }
+  .formSide { padding: var(--space-4); min-height: 100dvh; }
+  .card { padding: var(--space-8) var(--space-6); }
+  .mobileLogo { display: block; }
+  .header { text-align: center; }
+  .splashLogo { width: 160px; }
+  .splashLogoRing { padding: var(--space-6); }
+}
+
+@media (max-width: 480px) {
+  .card { padding: var(--space-6) var(--space-5); border-radius: var(--radius-xl); }
+  .title { font-size: 1.5rem; }
+  .splashLogo { width: 140px; }
+  .splashTagline { font-size: 0.875rem; }
 }

@@ -1,39 +1,69 @@
 /* ===================================================
    Teleprogreso S.A. — Global Styles
+   Paleta corporativa basada en logo: azul vibrante
+   (esfera/ondas wifi) + rojo acento (texto marca).
    =================================================== */
 
 :root {
-  /* Colores primarios */
-  --color-primary:       #1a56db;
-  --color-primary-dark:  #1447b0;
-  --color-primary-light: #e8efff;
+  /* ── Marca: Azul Teleprogreso ─────────────────────── */
+  --color-primary:        #1e88e5;   /* Azul vibrante (esfera del logo) */
+  --color-primary-dark:   #1565c0;   /* Azul cable/línea */
+  --color-primary-deep:   #0d47a1;   /* Azul profundo para texto sobre claro */
+  --color-primary-light:  #e3f2fd;   /* Tinte para fondos suaves */
+  --color-primary-50:     #f0f7ff;   /* Tinte aún más sutil */
 
-  /* Neutros */
-  --color-bg:            #f4f7fb;
-  --color-surface:       #ffffff;
-  --color-border:        #e2e8f0;
-  --color-border-hover:  #cbd5e1;
+  /* ── Acento: Rojo Teleprogreso ────────────────────── */
+  --color-accent:         #e53935;   /* Rojo del texto "TELEPROGRESO" */
+  --color-accent-dark:    #c62828;
+  --color-accent-light:   #ffebee;
 
-  /* Texto */
-  --color-text:          #0f172a;
-  --color-text-secondary:#64748b;
-  --color-text-muted:    #94a3b8;
+  /* ── Gradientes corporativos ──────────────────────── */
+  --gradient-primary:     linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+  --gradient-primary-soft:linear-gradient(135deg, #e3f2fd 0%, #f0f7ff 100%);
+  --gradient-hero:        linear-gradient(135deg, #0d47a1 0%, #1e88e5 60%, #42a5f5 100%);
+  --gradient-accent:      linear-gradient(135deg, #e53935 0%, #c62828 100%);
 
-  /* Estados */
-  --color-success:       #16a34a;
-  --color-success-light: #dcfce7;
-  --color-warning:       #d97706;
-  --color-warning-light: #fef3c7;
-  --color-danger:        #dc2626;
-  --color-danger-light:  #fee2e2;
-  --color-info:          #0891b2;
-  --color-info-light:    #cffafe;
+  /* ── Neutros (slate modernos) ─────────────────────── */
+  --color-bg:             #f6f9fc;
+  --color-bg-alt:         #eef3f9;
+  --color-surface:        #ffffff;
+  --color-surface-alt:    #fafbfd;
+  --color-border:         #e4ebf2;
+  --color-border-strong:  #cbd5e1;
+  --color-border-hover:   #94a3b8;
 
-  /* Tipografía */
-  --font-sans:  'DM Sans', sans-serif;
-  --font-mono:  'DM Mono', monospace;
+  /* ── Texto ────────────────────────────────────────── */
+  --color-text:           #0b1e3a;   /* Azul casi negro */
+  --color-text-secondary: #475569;
+  --color-text-muted:     #94a3b8;
+  --color-text-on-primary:#ffffff;
 
-  /* Espaciado */
+  /* ── Estados ──────────────────────────────────────── */
+  --color-success:        #16a34a;
+  --color-success-dark:   #15803d;
+  --color-success-light:  #dcfce7;
+  --color-success-bg:     #f0fdf4;
+
+  --color-warning:        #d97706;
+  --color-warning-dark:   #b45309;
+  --color-warning-light:  #fef3c7;
+  --color-warning-bg:     #fffbeb;
+
+  --color-danger:         #e53935;
+  --color-danger-dark:    #c62828;
+  --color-danger-light:   #ffebee;
+  --color-danger-bg:      #fef2f2;
+
+  --color-info:           #0891b2;
+  --color-info-light:     #cffafe;
+  --color-info-bg:        #ecfeff;
+
+  /* ── Tipografía ───────────────────────────────────── */
+  --font-sans:  'Inter', 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:  'JetBrains Mono', 'DM Mono', ui-monospace, monospace;
+  --font-display:'Inter', 'DM Sans', system-ui, sans-serif;
+
+  /* ── Espaciado ────────────────────────────────────── */
   --space-1:  4px;
   --space-2:  8px;
   --space-3:  12px;
@@ -43,26 +73,34 @@
   --space-8:  32px;
   --space-10: 40px;
   --space-12: 48px;
+  --space-16: 64px;
 
-  /* Bordes */
-  --radius-sm:  6px;
-  --radius-md:  10px;
-  --radius-lg:  16px;
-  --radius-xl:  24px;
+  /* ── Bordes redondeados ───────────────────────────── */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
+  --radius-2xl:  28px;
   --radius-full: 9999px;
 
-  /* Sombras */
-  --shadow-sm:  0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md:  0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
-  --shadow-lg:  0 10px 30px rgba(0,0,0,0.10), 0 4px 10px rgba(0,0,0,0.05);
+  /* ── Sombras (con tintes corporativos) ────────────── */
+  --shadow-xs:  0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm:  0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md:  0 4px 12px rgba(15, 23, 42, 0.07), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg:  0 12px 28px rgba(15, 23, 42, 0.10), 0 4px 10px rgba(15, 23, 42, 0.05);
+  --shadow-xl:  0 24px 48px rgba(15, 23, 42, 0.14), 0 8px 16px rgba(15, 23, 42, 0.06);
+  --shadow-primary: 0 10px 25px -5px rgba(30, 136, 229, 0.35), 0 8px 10px -6px rgba(30, 136, 229, 0.25);
+  --shadow-primary-sm: 0 4px 14px rgba(30, 136, 229, 0.25);
+  --shadow-accent:  0 10px 25px -5px rgba(229, 57, 53, 0.30);
 
-  /* Transiciones */
-  --transition: 180ms ease;
-  --transition-slow: 300ms ease;
+  /* ── Transiciones ─────────────────────────────────── */
+  --transition:       180ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow:  300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce:400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* Navbar height */
-  --nav-height: 64px;
-  --bottom-nav-height: 64px;
+  /* ── Alturas ──────────────────────────────────────── */
+  --nav-height:        68px;
+  --bottom-nav-height: 70px;
 }
 
 /* Reset */
@@ -79,20 +117,37 @@ html, body, #root {
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+/* Selección */
+::selection {
+  background: var(--color-primary-light);
+  color: var(--color-primary-deep);
 }
 
 /* Scrollbar personalizado */
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--color-border-strong);
   border-radius: var(--radius-full);
+  border: 2px solid var(--color-bg);
 }
+::-webkit-scrollbar-thumb:hover { background: var(--color-border-hover); }
 
 /* Utilidades comunes */
 .sr-only {
@@ -112,16 +167,32 @@ body {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 @keyframes pulse-ring {
-  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(26,86,219,.4); }
-  70%  { transform: scale(1);    box-shadow: 0 0 0 10px rgba(26,86,219,0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(26,86,219,0); }
+  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(30, 136, 229, 0.45); }
+  70%  { transform: scale(1);    box-shadow: 0 0 0 16px rgba(30, 136, 229, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(30, 136, 229, 0); }
+}
+@keyframes wifiPulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.95); }
+  50%      { opacity: 1;   transform: scale(1.05); }
 }
 @keyframes tick {
   0%   { opacity: 1; }
   50%  { opacity: 0.4; }
   100% { opacity: 1; }
+}
+@keyframes shimmer {
+  0%   { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
 }
